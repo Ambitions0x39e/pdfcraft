@@ -59,11 +59,7 @@ const MARK_MAX_DEPTH: usize = 64;
 /// destination page are skipped. When a parent of that entry is collapsed (`open` says whether a
 /// bookmark's children are shown), the nearest shown ancestor is returned instead. `open` is
 /// asked only about that entry's ancestors, top-down.
-pub(super) fn current_bookmark(
-    items: &[OutlineItem],
-    page: usize,
-    mut open: impl FnMut(&[usize], &OutlineItem) -> bool,
-) -> Option<Vec<usize>> {
+pub(super) fn current_bookmark(items: &[OutlineItem], page: usize, mut open: impl FnMut(&[usize], &OutlineItem) -> bool) -> Option<Vec<usize>> {
     let mut best: Option<Vec<usize>> = None;
     let mut path: Vec<usize> = Vec::new();
     let mut stack = vec![items.iter().enumerate()];
@@ -487,16 +483,7 @@ mod current_mark {
     use pdfcraft_render::OutlineItem;
 
     fn at(title: &str, page: Option<usize>, children: Vec<OutlineItem>) -> OutlineItem {
-        OutlineItem {
-            title: title.into(),
-            page,
-            view: pdfcraft_render::DestView::Top,
-            children,
-            open: true,
-            color: None,
-            italic: false,
-            bold: false,
-        }
+        OutlineItem { title: title.into(), page, view: pdfcraft_render::DestView::Top, children, open: true, color: None, italic: false, bold: false }
     }
 
     fn all_open(_: &[usize], _: &OutlineItem) -> bool {

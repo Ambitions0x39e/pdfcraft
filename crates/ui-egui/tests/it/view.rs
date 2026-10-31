@@ -1282,6 +1282,7 @@ trailer << /Root 1 0 R >>
 /// The Bookmarks panel marks the bookmark holding the current page, and follows navigation.
 #[test]
 fn the_bookmarks_panel_marks_the_bookmark_holding_the_current_page() {
+    use egui_kittest::kittest::NodeT;
     let mut h = bookmarks_harness("nested.pdf", NESTED);
     let marked = |h: &Harness<'static, PdfCraftApp>| {
         ["Part", "Chapter", "Appendix"]
