@@ -1287,7 +1287,7 @@ fn the_bookmarks_panel_marks_the_bookmark_holding_the_current_page() {
     let marked = |h: &Harness<'static, PdfCraftApp>| {
         ["Part", "Chapter", "Appendix"]
             .into_iter()
-            .filter(|title| h.get_by_label(title).accesskit_node().is_selected() == Some(true))
+            .filter(|title| h.get_by_label(title).accesskit_node().toggled() == Some(egui::accesskit::Toggled::True))
             .collect::<Vec<_>>()
     };
     assert_eq!(marked(&h), ["Part"], "page 1 is in Part");
