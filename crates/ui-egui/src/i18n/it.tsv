@@ -2810,3 +2810,15 @@ certificate	SHA-256 digest	Impronta SHA-256
 # Comments panel: each reply's own "…" menu (AI-assisted, not separately native-reviewed)
 	Options for this reply	Opzioni per questa risposta
 	Export value	Valore di esportazione
+	Interface font	Carattere dell'interfaccia
+	Chinese, Japanese and Korean font	Carattere per cinese, giapponese e coreano
+	Choose font file…	Scegli file di carattere…
+	Reset to default	Ripristina predefinito
+	A chosen font draws the whole interface; characters it lacks are drawn with the default fonts.	Il carattere scelto viene usato in tutta l'interfaccia; i caratteri mancanti vengono mostrati con i caratteri predefiniti.
+	Couldn't use the font {name}: {reason}. The default font is used instead.	Impossibile usare il carattere {name}: {reason}. Viene usato il carattere predefinito.
+	the file is larger than {size} MB	il file supera {size} MB
+	the file couldn't be read ({e})	impossibile leggere il file ({e})
+	the file is not a font that can be used	il file non è un carattere utilizzabile
+	it has no Latin letters	non contiene lettere latine
+	it has no Chinese, Japanese or Korean characters	non contiene caratteri cinesi, giapponesi o coreani
+	fonts can't be read from files here	qui non è possibile leggere caratteri da file

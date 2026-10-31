@@ -2809,3 +2809,15 @@ theme	Appearance	स्वरूप
 
 # Comments panel: each reply's own "…" menu (AI-assisted, not separately native-reviewed)
 	Options for this reply	इस जवाब के विकल्प
+	Interface font	इंटरफ़ेस फ़ॉन्ट
+	Chinese, Japanese and Korean font	चीनी, जापानी और कोरियाई फ़ॉन्ट
+	Choose font file…	फ़ॉन्ट फ़ाइल चुनें…
+	Reset to default	डिफ़ॉल्ट पर रीसेट करें
+	A chosen font draws the whole interface; characters it lacks are drawn with the default fonts.	चुना गया फ़ॉन्ट पूरे इंटरफ़ेस में उपयोग होता है; जो अक्षर उसमें नहीं हैं वे डिफ़ॉल्ट फ़ॉन्ट में दिखते हैं।
+	Couldn't use the font {name}: {reason}. The default font is used instead.	फ़ॉन्ट {name} का उपयोग नहीं किया जा सका: {reason}। इसके बजाय डिफ़ॉल्ट फ़ॉन्ट उपयोग किया जा रहा है।
+	the file is larger than {size} MB	फ़ाइल {size} MB से बड़ी है
+	the file couldn't be read ({e})	फ़ाइल पढ़ी नहीं जा सकी ({e})
+	the file is not a font that can be used	यह फ़ाइल उपयोग करने योग्य फ़ॉन्ट नहीं है
+	it has no Latin letters	इसमें लैटिन अक्षर नहीं हैं
+	it has no Chinese, Japanese or Korean characters	इसमें चीनी, जापानी या कोरियाई अक्षर नहीं हैं
+	fonts can't be read from files here	यहाँ फ़ाइलों से फ़ॉन्ट नहीं पढ़े जा सकते

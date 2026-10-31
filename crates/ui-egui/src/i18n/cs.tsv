@@ -2885,3 +2885,15 @@ certificate	Version	Verze
 # Comments panel: each reply's own "…" menu (AI-assisted, not separately native-reviewed)
 	Options for this reply	Možnosti této odpovědi
 	Export value	Exportní hodnota
+	Interface font	Písmo rozhraní
+	Chinese, Japanese and Korean font	Písmo pro čínštinu, japonštinu a korejštinu
+	Choose font file…	Vybrat soubor písma…
+	Reset to default	Obnovit výchozí
+	A chosen font draws the whole interface; characters it lacks are drawn with the default fonts.	Zvolené písmo se použije v celém rozhraní; znaky, které mu chybí, se zobrazí výchozími písmy.
+	Couldn't use the font {name}: {reason}. The default font is used instead.	Písmo {name} nelze použít: {reason}. Místo něj se použije výchozí písmo.
+	the file is larger than {size} MB	soubor je větší než {size} MB
+	the file couldn't be read ({e})	soubor nelze přečíst ({e})
+	the file is not a font that can be used	soubor není použitelné písmo
+	it has no Latin letters	nemá latinková písmena
+	it has no Chinese, Japanese or Korean characters	nemá čínské, japonské ani korejské znaky
+	fonts can't be read from files here	zde nelze číst písma ze souborů

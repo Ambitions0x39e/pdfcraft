@@ -2577,3 +2577,15 @@ animation effects	Off	Ki
 # Comments panel: each reply's own "…" menu (AI-assisted, not separately native-reviewed)
 	Options for this reply	A válasz beállításai
 	Export value	Exportérték
+	Interface font	Felület betűtípusa
+	Chinese, Japanese and Korean font	Kínai, japán és koreai betűtípus
+	Choose font file…	Betűtípusfájl kiválasztása…
+	Reset to default	Alapértelmezés visszaállítása
+	A chosen font draws the whole interface; characters it lacks are drawn with the default fonts.	A választott betűtípus az egész felületen megjelenik; a benne hiányzó karakterek az alapértelmezett betűtípusokkal jelennek meg.
+	Couldn't use the font {name}: {reason}. The default font is used instead.	A(z) {name} betűtípus nem használható: {reason}. Helyette az alapértelmezett betűtípus látható.
+	the file is larger than {size} MB	a fájl nagyobb {size} MB-nál
+	the file couldn't be read ({e})	a fájl nem olvasható ({e})
+	the file is not a font that can be used	a fájl nem használható betűtípus
+	it has no Latin letters	nincsenek benne latin betűk
+	it has no Chinese, Japanese or Korean characters	nincsenek benne kínai, japán vagy koreai karakterek
+	fonts can't be read from files here	itt nem lehet betűtípust fájlból olvasni

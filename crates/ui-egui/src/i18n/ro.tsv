@@ -2838,3 +2838,15 @@ theme	Appearance	Aspect
 
 # Comments panel: each reply's own "…" menu (AI-assisted, not separately native-reviewed)
 	Options for this reply	Opțiuni pentru acest răspuns
+	Interface font	Fontul interfeței
+	Chinese, Japanese and Korean font	Font pentru chineză, japoneză și coreeană
+	Choose font file…	Alege fișierul fontului…
+	Reset to default	Resetează la implicit
+	A chosen font draws the whole interface; characters it lacks are drawn with the default fonts.	Fontul ales este folosit în toată interfața; caracterele care îi lipsesc sunt afișate cu fonturile implicite.
+	Couldn't use the font {name}: {reason}. The default font is used instead.	Fontul {name} nu poate fi folosit: {reason}. Se folosește fontul implicit.
+	the file is larger than {size} MB	fișierul depășește {size} MB
+	the file couldn't be read ({e})	fișierul nu a putut fi citit ({e})
+	the file is not a font that can be used	fișierul nu este un font utilizabil
+	it has no Latin letters	nu are litere latine
+	it has no Chinese, Japanese or Korean characters	nu are caractere chinezești, japoneze sau coreene
+	fonts can't be read from files here	aici fonturile nu pot fi citite din fișiere

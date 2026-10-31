@@ -2854,3 +2854,15 @@ certificate	Version	الإصدار
 # Comments panel: each reply's own "…" menu (AI-assisted, not separately native-reviewed)
 	Options for this reply	خيارات هذا الرد
 	Export value	قيمة التصدير
+	Interface font	خط الواجهة
+	Chinese, Japanese and Korean font	خط الصينية واليابانية والكورية
+	Choose font file…	اختيار ملف خط…
+	Reset to default	إعادة التعيين إلى الافتراضي
+	A chosen font draws the whole interface; characters it lacks are drawn with the default fonts.	يُستخدم الخط المختار في الواجهة كلها، وتُعرض الأحرف غير الموجودة فيه بالخطوط الافتراضية.
+	Couldn't use the font {name}: {reason}. The default font is used instead.	تعذر استخدام الخط {name}: {reason}. يُستخدم الخط الافتراضي بدلًا منه.
+	the file is larger than {size} MB	حجم الملف أكبر من {size} ميغابايت
+	the file couldn't be read ({e})	تعذرت قراءة الملف ({e})
+	the file is not a font that can be used	الملف ليس خطًا قابلًا للاستخدام
+	it has no Latin letters	لا يحتوي على أحرف لاتينية
+	it has no Chinese, Japanese or Korean characters	لا يحتوي على أحرف صينية أو يابانية أو كورية
+	fonts can't be read from files here	لا يمكن قراءة الخطوط من الملفات هنا

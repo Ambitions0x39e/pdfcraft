@@ -2487,3 +2487,15 @@ animation effects	Off	ఆఫ్
 # Comments panel: each reply's own "…" menu (AI-assisted, not separately native-reviewed)
 	Options for this reply	ఈ ప్రత్యుత్తరం ఎంపికలు
 	Export value	ఎగుమతి విలువ
+	Interface font	ఇంటర్‌ఫేస్ ఫాంట్
+	Chinese, Japanese and Korean font	చైనీస్, జపనీస్ మరియు కొరియన్ ఫాంట్
+	Choose font file…	ఫాంట్ ఫైల్‌ను ఎంచుకోండి…
+	Reset to default	డిఫాల్ట్‌కు రీసెట్ చేయి
+	A chosen font draws the whole interface; characters it lacks are drawn with the default fonts.	ఎంచుకున్న ఫాంట్ మొత్తం ఇంటర్‌ఫేస్‌కు ఉపయోగించబడుతుంది; దానిలో లేని అక్షరాలు డిఫాల్ట్ ఫాంట్‌లతో చూపబడతాయి.
+	Couldn't use the font {name}: {reason}. The default font is used instead.	ఫాంట్ {name}ను ఉపయోగించలేకపోయాము: {reason}. బదులుగా డిఫాల్ట్ ఫాంట్ ఉపయోగించబడుతోంది.
+	the file is larger than {size} MB	ఫైల్ {size} MB కంటే పెద్దది
+	the file couldn't be read ({e})	ఫైల్‌ను చదవలేకపోయాము ({e})
+	the file is not a font that can be used	ఈ ఫైల్ ఉపయోగించగల ఫాంట్ కాదు
+	it has no Latin letters	దీనిలో లాటిన్ అక్షరాలు లేవు
+	it has no Chinese, Japanese or Korean characters	దీనిలో చైనీస్, జపనీస్ లేదా కొరియన్ అక్షరాలు లేవు
+	fonts can't be read from files here	ఇక్కడ ఫైల్‌ల నుండి ఫాంట్‌లను చదవలేము

@@ -2844,3 +2844,15 @@ certificate	Version	Version
 # Comments panel: each reply's own "…" menu (AI-assisted, not separately native-reviewed)
 	Options for this reply	Options de cette réponse
 	Export value	Valeur d’exportation
+	Interface font	Police de l'interface
+	Chinese, Japanese and Korean font	Police chinoise, japonaise et coréenne
+	Choose font file…	Choisir un fichier de police…
+	Reset to default	Rétablir la valeur par défaut
+	A chosen font draws the whole interface; characters it lacks are drawn with the default fonts.	La police choisie s'applique à toute l'interface ; les caractères qui lui manquent sont affichés avec les polices par défaut.
+	Couldn't use the font {name}: {reason}. The default font is used instead.	Impossible d'utiliser la police {name} : {reason}. La police par défaut est utilisée à la place.
+	the file is larger than {size} MB	le fichier dépasse {size} Mo
+	the file couldn't be read ({e})	le fichier n'a pas pu être lu ({e})
+	the file is not a font that can be used	le fichier n'est pas une police utilisable
+	it has no Latin letters	elle n'a pas de lettres latines
+	it has no Chinese, Japanese or Korean characters	elle n'a pas de caractères chinois, japonais ou coréens
+	fonts can't be read from files here	les polices ne peuvent pas être lues depuis des fichiers ici

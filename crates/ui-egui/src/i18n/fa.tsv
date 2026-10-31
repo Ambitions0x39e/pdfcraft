@@ -2816,3 +2816,15 @@ theme	Appearance	ظاهر
 
 # Comments panel: each reply's own "…" menu (AI-assisted, not separately native-reviewed)
 	Options for this reply	گزینه‌های این پاسخ
+	Interface font	قلم رابط کاربری
+	Chinese, Japanese and Korean font	قلم چینی، ژاپنی و کره‌ای
+	Choose font file…	انتخاب پرونده قلم…
+	Reset to default	بازنشانی به پیش‌فرض
+	A chosen font draws the whole interface; characters it lacks are drawn with the default fonts.	قلم انتخاب‌شده در کل رابط کاربری به کار می‌رود؛ نویسه‌هایی که ندارد با قلم‌های پیش‌فرض نمایش داده می‌شوند.
+	Couldn't use the font {name}: {reason}. The default font is used instead.	نمی‌توان از قلم {name} استفاده کرد: {reason}. به جای آن از قلم پیش‌فرض استفاده می‌شود.
+	the file is larger than {size} MB	پرونده بزرگ‌تر از {size} مگابایت است
+	the file couldn't be read ({e})	پرونده خوانده نشد ({e})
+	the file is not a font that can be used	این پرونده قلمی قابل استفاده نیست
+	it has no Latin letters	حروف لاتین ندارد
+	it has no Chinese, Japanese or Korean characters	نویسه‌های چینی، ژاپنی یا کره‌ای ندارد
+	fonts can't be read from files here	اینجا نمی‌توان قلم‌ها را از پرونده خواند

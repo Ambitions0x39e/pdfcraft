@@ -385,6 +385,124 @@ fn hangul_candidates() -> Vec<PathBuf> {
     }
 }
 
+/// An installed face Preferences offers as the interface font ([`interface_faces`]).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct InstalledFace {
+    /// The family name, as the face's own name table spells it in English.
+    pub family: &'static str,
+    pub path: PathBuf,
+    /// Whether it draws Chinese, Japanese or Korean, so it is offered for that font too.
+    pub cjk: bool,
+}
+
+/// Well-known interface faces the operating system ships: family, file (relative to the system's
+/// font folder, or under the font folders on Linux and the BSDs), and whether it is a CJK face.
+fn interface_face_candidates() -> Vec<(&'static str, Vec<PathBuf>, bool)> {
+    let windows = |family, file: &str, cjk| (family, vec![windows_fonts().join(file)], cjk);
+    let mac = |family, file: &str, cjk| (family, vec![Path::new("/System/Library/Fonts").join(file)], cjk);
+    if cfg!(windows) {
+        vec![
+            windows("Segoe UI", "segoeui.ttf", false),
+            windows("Arial", "arial.ttf", false),
+            windows("Tahoma", "tahoma.ttf", false),
+            windows("Microsoft YaHei UI", "msyh.ttc", true),
+            windows("Microsoft YaHei", "msyh.ttc", true),
+            windows("DengXian", "Deng.ttf", true),
+            windows("SimSun", "simsun.ttc", true),
+            windows("Microsoft JhengHei UI", "msjh.ttc", true),
+            windows("Microsoft JhengHei", "msjh.ttc", true),
+            windows("Yu Gothic UI", "YuGothR.ttc", true),
+            windows("Meiryo UI", "meiryo.ttc", true),
+            windows("Malgun Gothic", "malgun.ttf", true),
+        ]
+    } else if cfg!(target_os = "macos") {
+        vec![
+            mac("Helvetica Neue", "HelveticaNeue.ttc", false),
+            mac("Helvetica", "Helvetica.ttc", false),
+            mac("PingFang SC", "PingFang.ttc", true),
+            mac("PingFang TC", "PingFang.ttc", true),
+            mac("Hiragino Sans GB", "Hiragino Sans GB.ttc", true),
+            mac("Apple SD Gothic Neo", "AppleSDGothicNeo.ttc", true),
+        ]
+    } else {
+        vec![
+            (
+                "Noto Sans",
+                unix_fonts(&["truetype/noto/NotoSans-Regular.ttf", "noto/NotoSans-Regular.ttf", "google-noto/NotoSans-Regular.ttf"]),
+                false,
+            ),
+            (
+                "DejaVu Sans",
+                unix_fonts(&["truetype/dejavu/DejaVuSans.ttf", "TTF/DejaVuSans.ttf", "dejavu/DejaVuSans.ttf", "dejavu-sans-fonts/DejaVuSans.ttf"]),
+                false,
+            ),
+            (
+                "Cantarell",
+                unix_fonts(&["cantarell/Cantarell-VF.otf", "abattis-cantarell-vf-fonts/Cantarell-VF.otf", "opentype/cantarell/Cantarell-VF.otf"]),
+                false,
+            ),
+            (
+                "Noto Sans CJK SC",
+                unix_fonts(&[
+                    "opentype/noto/NotoSansCJK-Regular.ttc",
+                    "noto-cjk/NotoSansCJK-Regular.ttc",
+                    "google-noto-cjk/NotoSansCJK-Regular.ttc",
+                    "google-noto-sans-cjk-ttc-fonts/NotoSansCJK-Regular.ttc",
+                ]),
+                true,
+            ),
+            (
+                "Noto Sans CJK TC",
+                unix_fonts(&[
+                    "opentype/noto/NotoSansCJK-Regular.ttc",
+                    "noto-cjk/NotoSansCJK-Regular.ttc",
+                    "google-noto-cjk/NotoSansCJK-Regular.ttc",
+                    "google-noto-sans-cjk-ttc-fonts/NotoSansCJK-Regular.ttc",
+                ]),
+                true,
+            ),
+            (
+                "WenQuanYi Micro Hei",
+                unix_fonts(&["truetype/wqy/wqy-microhei.ttc", "wenquanyi/wqy-microhei/wqy-microhei.ttc", "wqy-microhei/wqy-microhei.ttc"]),
+                true,
+            ),
+        ]
+    }
+}
+
+/// The well-known interface faces installed here, found by their files (nothing is read until
+/// one is chosen), looked up once. Empty when installed fonts are turned off
+/// (`PDFCRAFT_SYSTEM_FONTS=0`). Any other face can still be chosen as a file.
+pub fn interface_faces() -> &'static [InstalledFace] {
+    static CACHE: OnceLock<Vec<InstalledFace>> = OnceLock::new();
+    CACHE.get_or_init(|| {
+        if std::env::var_os("PDFCRAFT_SYSTEM_FONTS").is_some_and(|v| v == "0") {
+            return Vec::new();
+        }
+        installed_interface_faces(interface_face_candidates(), Path::is_file)
+    })
+}
+
+/// The first existing path of each candidate, by `exists`.
+fn installed_interface_faces(candidates: Vec<(&'static str, Vec<PathBuf>, bool)>, exists: impl Fn(&Path) -> bool) -> Vec<InstalledFace> {
+    candidates
+        .into_iter()
+        .filter_map(|(family, paths, cjk)| paths.into_iter().find(|p| exists(p)).map(|path| InstalledFace { family, path, cjk }))
+        .collect()
+}
+
+/// The system's font folder, where a font file is chosen from first.
+pub fn font_folder() -> Option<PathBuf> {
+    let dir = if cfg!(windows) {
+        windows_fonts()
+    } else if cfg!(target_os = "macos") {
+        PathBuf::from("/System/Library/Fonts")
+    } else {
+        PathBuf::from("/usr/share/fonts")
+    };
+    dir.is_dir().then_some(dir)
+}
+
 fn windows_fonts() -> PathBuf {
     let dir = std::env::var_os("WINDIR").or_else(|| std::env::var_os("SystemRoot")).map_or_else(|| PathBuf::from(r"C:\Windows"), PathBuf::from);
     dir.join("Fonts")
@@ -493,6 +611,31 @@ mod tests {
             assert!(!list.is_empty(), "{need:?}");
             assert!(list.iter().all(|p| p.extension().is_some_and(|e| e == "ttf" || e == "ttc")), "{need:?}");
         }
+    }
+
+    #[test]
+    fn interface_face_candidates_are_absolute_font_files_with_cjk_faces() {
+        let list = interface_face_candidates();
+        assert!(list.iter().any(|(_, _, cjk)| *cjk) && list.iter().any(|(_, _, cjk)| !*cjk));
+        for (family, paths, _) in &list {
+            assert!(!family.is_empty());
+            assert!(
+                paths
+                    .iter()
+                    .all(|p| p.is_absolute() && p.extension().is_some_and(|e| ["ttf", "ttc", "otf"].iter().any(|x| e.eq_ignore_ascii_case(x)))),
+                "{family}: {paths:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn an_interface_face_is_offered_at_its_first_existing_file() {
+        let candidates = vec![
+            ("Missing", vec![PathBuf::from("/a/missing.ttf")], false),
+            ("Second", vec![PathBuf::from("/a/x.ttf"), PathBuf::from("/b/x.ttf"), PathBuf::from("/c/x.ttf")], true),
+        ];
+        let found = installed_interface_faces(candidates, |p| p.starts_with("/b") || p.starts_with("/c"));
+        assert_eq!(found, vec![InstalledFace { family: "Second", path: PathBuf::from("/b/x.ttf"), cjk: true }]);
     }
 
     /// `script_fallback` honours the documented installed-font switch, under which it returns

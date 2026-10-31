@@ -2541,3 +2541,15 @@ animation effects	Off	Изключени
 # Comments panel: each reply's own "…" menu (AI-assisted, not separately native-reviewed)
 	Options for this reply	Опции за този отговор
 	Export value	Стойност за експортиране
+	Interface font	Шрифт на интерфейса
+	Chinese, Japanese and Korean font	Шрифт за китайски, японски и корейски
+	Choose font file…	Избор на файл с шрифт…
+	Reset to default	Възстановяване по подразбиране
+	A chosen font draws the whole interface; characters it lacks are drawn with the default fonts.	Избраният шрифт се използва в целия интерфейс; липсващите в него знаци се показват с шрифтовете по подразбиране.
+	Couldn't use the font {name}: {reason}. The default font is used instead.	Шрифтът {name} не може да се използва: {reason}. Използва се шрифтът по подразбиране.
+	the file is larger than {size} MB	файлът е по-голям от {size} MB
+	the file couldn't be read ({e})	файлът не може да бъде прочетен ({e})
+	the file is not a font that can be used	файлът не е използваем шрифт
+	it has no Latin letters	в него няма латински букви
+	it has no Chinese, Japanese or Korean characters	в него няма китайски, японски или корейски знаци
+	fonts can't be read from files here	тук шрифтове не могат да се четат от файлове

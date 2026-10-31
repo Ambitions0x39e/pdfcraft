@@ -2600,3 +2600,15 @@ animation effects	Off	Вимкнено
 # Comments panel: each reply's own "…" menu (AI-assisted, not separately native-reviewed)
 	Options for this reply	Параметри цієї відповіді
 	Export value	Значення експорту
+	Interface font	Шрифт інтерфейсу
+	Chinese, Japanese and Korean font	Шрифт для китайської, японської та корейської
+	Choose font file…	Вибрати файл шрифту…
+	Reset to default	Скинути до типового
+	A chosen font draws the whole interface; characters it lacks are drawn with the default fonts.	Вибраний шрифт використовується в усьому інтерфейсі; символи, яких у ньому немає, виводяться типовими шрифтами.
+	Couldn't use the font {name}: {reason}. The default font is used instead.	Не вдалося використати шрифт {name}: {reason}. Використовується типовий шрифт.
+	the file is larger than {size} MB	файл більший за {size} МБ
+	the file couldn't be read ({e})	не вдалося прочитати файл ({e})
+	the file is not a font that can be used	файл не є придатним шрифтом
+	it has no Latin letters	у ньому немає латинських літер
+	it has no Chinese, Japanese or Korean characters	у ньому немає китайських, японських чи корейських символів
+	fonts can't be read from files here	тут не можна читати шрифти з файлів

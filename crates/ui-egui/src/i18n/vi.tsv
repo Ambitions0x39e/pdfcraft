@@ -2845,3 +2845,15 @@ key	Space	Space
 # Comments panel: each reply's own "…" menu (AI-assisted, not separately native-reviewed)
 	Options for this reply	Tùy chọn cho câu trả lời này
 	Export value	Giá trị xuất
+	Interface font	Phông chữ giao diện
+	Chinese, Japanese and Korean font	Phông chữ tiếng Trung, Nhật và Hàn
+	Choose font file…	Chọn tệp phông chữ…
+	Reset to default	Đặt lại mặc định
+	A chosen font draws the whole interface; characters it lacks are drawn with the default fonts.	Phông chữ đã chọn được dùng cho toàn bộ giao diện; các ký tự nó thiếu được hiển thị bằng phông chữ mặc định.
+	Couldn't use the font {name}: {reason}. The default font is used instead.	Không thể dùng phông chữ {name}: {reason}. Phông chữ mặc định được dùng thay thế.
+	the file is larger than {size} MB	tệp lớn hơn {size} MB
+	the file couldn't be read ({e})	không thể đọc tệp ({e})
+	the file is not a font that can be used	tệp không phải là phông chữ dùng được
+	it has no Latin letters	không có chữ cái Latinh
+	it has no Chinese, Japanese or Korean characters	không có ký tự tiếng Trung, Nhật hoặc Hàn
+	fonts can't be read from files here	không thể đọc phông chữ từ tệp ở đây

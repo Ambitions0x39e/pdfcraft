@@ -2754,3 +2754,15 @@ key	Space	Mellomrom
 @plural	{n} more formula reads a missing field.|{n} more formulas read missing fields.	{n} more formula reads a missing field.|{n} more formulas read missing fields.
 @plural	{fields} builds some field names as it runs, so those reads aren't checked.|{fields} build some field names as they run, so those reads aren't checked.	{fields} builds some field names as it runs, so those reads aren't checked.|{fields} build some field names as they run, so those reads aren't checked.
 @plural	{fields} is missing|{fields} are missing	{fields} is missing|{fields} are missing
+	Interface font	Skrift i grensesnittet
+	Chinese, Japanese and Korean font	Skrift for kinesisk, japansk og koreansk
+	Choose font file…	Velg skriftfil…
+	Reset to default	Tilbakestill til standard
+	A chosen font draws the whole interface; characters it lacks are drawn with the default fonts.	Den valgte skriften brukes i hele grensesnittet; tegn den mangler, vises med standardskriftene.
+	Couldn't use the font {name}: {reason}. The default font is used instead.	Kan ikke bruke skriften {name}: {reason}. Standardskriften brukes i stedet.
+	the file is larger than {size} MB	filen er større enn {size} MB
+	the file couldn't be read ({e})	filen kunne ikke leses ({e})
+	the file is not a font that can be used	filen er ikke en skrift som kan brukes
+	it has no Latin letters	den har ingen latinske bokstaver
+	it has no Chinese, Japanese or Korean characters	den har ingen kinesiske, japanske eller koreanske tegn
+	fonts can't be read from files here	her kan ikke skrifter leses fra filer

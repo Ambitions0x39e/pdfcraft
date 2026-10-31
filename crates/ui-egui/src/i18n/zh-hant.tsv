@@ -2528,3 +2528,15 @@ animation effects	Off	關
 # Comments panel: each reply's own "…" menu (AI-assisted, not separately native-reviewed)
 	Options for this reply	此回覆的選項
 	Export value	匯出值
+	Interface font	介面字型
+	Chinese, Japanese and Korean font	中日韓字型
+	Choose font file…	選擇字型檔案…
+	Reset to default	還原預設值
+	A chosen font draws the whole interface; characters it lacks are drawn with the default fonts.	所選字型用於整個介面；其缺少的字元將以預設字型顯示。
+	Couldn't use the font {name}: {reason}. The default font is used instead.	無法使用字型 {name}：{reason}。已改用預設字型。
+	the file is larger than {size} MB	檔案大於 {size} MB
+	the file couldn't be read ({e})	無法讀取檔案（{e}）
+	the file is not a font that can be used	該檔案不是可用的字型
+	it has no Latin letters	它沒有拉丁字母
+	it has no Chinese, Japanese or Korean characters	它沒有中文、日文或韓文字元
+	fonts can't be read from files here	此處無法從檔案讀取字型

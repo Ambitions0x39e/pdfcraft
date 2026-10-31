@@ -100,6 +100,7 @@ impl PdfCraftApp {
             motion: motion::Motion::default(),
             language: i18n::AUTO.to_string(),
             ui_scale: None,
+            interface_fonts: Default::default(),
             system_text_scale: 1.0,
             ui_scale_applied: None,
             flatten_fill_sign_on_save: false,
@@ -247,6 +248,7 @@ impl PdfCraftApp {
             styled: false,
             fonts_ready: false,
             fonts_cjk: theme::CjkPreference::Default,
+            fonts_chosen: Default::default(),
             control: None,
             bookmark_rename: None,
             last_opened_url: None,
@@ -349,6 +351,26 @@ impl PdfCraftApp {
         self.notify(i18n::fmt(tl!(template), args));
     }
 
+    /// Install the interface fonts for `cjk` with the chosen faces in front. A chosen face that
+    /// can't be used falls back to the default: its choice is cleared, so the next save keeps the
+    /// default, and the user is told why.
+    pub(crate) fn install_fonts(&mut self, ctx: &egui::Context, cjk: theme::CjkPreference) {
+        let rejected = theme::install_fonts_with(ctx, cjk, &self.interface_fonts);
+        for r in &rejected {
+            let slot = match r.slot {
+                theme::interface_font::Slot::Interface => &mut self.interface_fonts.ui,
+                theme::interface_font::Slot::Cjk => &mut self.interface_fonts.cjk,
+            };
+            *slot = None;
+            self.notify_fmt(
+                "Couldn't use the font {name}: {reason}. The default font is used instead.",
+                &[("name", &r.choice.name), ("reason", &r.problem.message())],
+            );
+        }
+        self.fonts_cjk = cjk;
+        self.fonts_chosen = self.interface_fonts.clone();
+    }
+
     /// `true` while any open document still waits for page renders (used by headless capture).
     pub fn render_pending(&self) -> bool {
         self.views.iter().any(|v| v.render_pending())
@@ -403,16 +425,14 @@ impl eframe::App for PdfCraftApp {
         let cjk = theme::CjkPreference::for_language(lang.code());
         if !self.styled {
             egui_extras::install_image_loaders(ctx);
-            theme::install_fonts_for(ctx, cjk);
-            self.fonts_cjk = cjk;
+            self.install_fonts(ctx, cjk);
             theme::apply(ctx, self.theme);
             self.styled = true;
         } else {
             self.fonts_ready = true;
-            if cjk != self.fonts_cjk {
+            if cjk != self.fonts_cjk || self.interface_fonts != self.fonts_chosen {
                 // Same family names as before, so named fonts stay valid while the new set loads.
-                theme::install_fonts_for(ctx, cjk);
-                self.fonts_cjk = cjk;
+                self.install_fonts(ctx, cjk);
             }
         }
         self.sync_theme(ctx);

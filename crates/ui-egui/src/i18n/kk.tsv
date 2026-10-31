@@ -2576,3 +2576,15 @@ animation effects	Off	Өшірулі
 # Comments panel: each reply's own "…" menu (AI-assisted, not separately native-reviewed)
 	Options for this reply	Осы жауаптың параметрлері
 	Export value	Экспорт мәні
+	Interface font	Интерфейс қарпі
+	Chinese, Japanese and Korean font	Қытай, жапон және корей қарпі
+	Choose font file…	Қаріп файлын таңдау…
+	Reset to default	Әдепкіге қайтару
+	A chosen font draws the whole interface; characters it lacks are drawn with the default fonts.	Таңдалған қаріп бүкіл интерфейсте қолданылады; онда жоқ таңбалар әдепкі қаріптермен көрсетіледі.
+	Couldn't use the font {name}: {reason}. The default font is used instead.	{name} қарпін пайдалану мүмкін емес: {reason}. Оның орнына әдепкі қаріп пайдаланылады.
+	the file is larger than {size} MB	файл {size} МБ-тан үлкен
+	the file couldn't be read ({e})	файлды оқу мүмкін болмады ({e})
+	the file is not a font that can be used	файл пайдалануға болатын қаріп емес
+	it has no Latin letters	онда латын әріптері жоқ
+	it has no Chinese, Japanese or Korean characters	онда қытай, жапон немесе корей таңбалары жоқ
+	fonts can't be read from files here	мұнда қаріптерді файлдардан оқу мүмкін емес

@@ -2583,3 +2583,15 @@ animation effects	Off	Izklopljeni
 # Comments panel: each reply's own "…" menu (AI-assisted, not separately native-reviewed)
 	Options for this reply	Možnosti tega odgovora
 	Export value	Izvozna vrednost
+	Interface font	Pisava vmesnika
+	Chinese, Japanese and Korean font	Pisava za kitajščino, japonščino in korejščino
+	Choose font file…	Izberi datoteko pisave…
+	Reset to default	Ponastavi na privzeto
+	A chosen font draws the whole interface; characters it lacks are drawn with the default fonts.	Izbrana pisava se uporablja v celotnem vmesniku; znaki, ki jih nima, so prikazani s privzetimi pisavami.
+	Couldn't use the font {name}: {reason}. The default font is used instead.	Pisave {name} ni mogoče uporabiti: {reason}. Uporabljena je privzeta pisava.
+	the file is larger than {size} MB	datoteka je večja od {size} MB
+	the file couldn't be read ({e})	datoteke ni bilo mogoče prebrati ({e})
+	the file is not a font that can be used	datoteka ni uporabna pisava
+	it has no Latin letters	nima latiničnih črk
+	it has no Chinese, Japanese or Korean characters	nima kitajskih, japonskih ali korejskih znakov
+	fonts can't be read from files here	tukaj pisav ni mogoče brati iz datotek

@@ -2736,3 +2736,15 @@ theme	Appearance	ลักษณะที่ปรากฏ
 	Unchecked reads	Unchecked reads
 	{field} reads fields named as it runs	{field} reads fields named as it runs
 	Some names are built as it runs	Some names are built as it runs
+	Interface font	แบบอักษรของหน้าจอโปรแกรม
+	Chinese, Japanese and Korean font	แบบอักษรภาษาจีน ญี่ปุ่น และเกาหลี
+	Choose font file…	เลือกไฟล์แบบอักษร…
+	Reset to default	รีเซ็ตเป็นค่าเริ่มต้น
+	A chosen font draws the whole interface; characters it lacks are drawn with the default fonts.	แบบอักษรที่เลือกจะใช้กับทั้งหน้าจอโปรแกรม อักขระที่ไม่มีในแบบอักษรนั้นจะแสดงด้วยแบบอักษรเริ่มต้น
+	Couldn't use the font {name}: {reason}. The default font is used instead.	ใช้แบบอักษร {name} ไม่ได้: {reason} จึงใช้แบบอักษรเริ่มต้นแทน
+	the file is larger than {size} MB	ไฟล์มีขนาดใหญ่กว่า {size} MB
+	the file couldn't be read ({e})	อ่านไฟล์ไม่ได้ ({e})
+	the file is not a font that can be used	ไฟล์นี้ไม่ใช่แบบอักษรที่ใช้ได้
+	it has no Latin letters	ไม่มีตัวอักษรละติน
+	it has no Chinese, Japanese or Korean characters	ไม่มีอักขระภาษาจีน ญี่ปุ่น หรือเกาหลี
+	fonts can't be read from files here	ไม่สามารถอ่านแบบอักษรจากไฟล์ที่นี่ได้
