@@ -627,6 +627,9 @@ fn enabled(h: &Harness<'static, PdfCraftApp>, label: &str) -> Option<bool> {
     Some(h.query_by(|n| n.label().as_deref() == Some(label) && n.is_disabled()).is_none())
 }
 
+/// The right end of the tab strip in the 1400-wide harness: the window less the strip's margin.
+const STRIP_RIGHT: f32 = 1400.0 - 10.0;
+
 #[test]
 fn tabs_shrink_to_fit_then_arrows_step_through_them_and_open_stays_in_sight() {
     // Five long names are wider than the strip: the tabs shrink instead of running under the
@@ -637,9 +640,12 @@ fn tabs_shrink_to_fit_then_arrows_step_through_them_and_open_stays_in_sight() {
             app.open_bytes(&name(i), None, FIXTURE.to_vec()).unwrap();
         }
     });
+    // The strip ends at the window (1400) less its margin; Discord and the other app buttons
+    // are in the mode bar below it.
     let open = h.get_by_label("Open").rect();
+    assert!(open.right() <= STRIP_RIGHT, "Open {open:?} must not run off the strip");
     let discord = h.get_by_label("Discord").rect();
-    assert!(open.right() <= discord.left(), "Open {open:?} must not run under Discord {discord:?}");
+    assert!(discord.top() >= open.bottom() - 0.5, "Discord {discord:?} sits in the mode bar, below the tabs");
     let mut previous_right = f32::MIN;
     for i in 0..5 {
         let tab = h.get_by_label(&name(i)).rect();
@@ -663,15 +669,14 @@ fn tabs_shrink_to_fit_then_arrows_step_through_them_and_open_stays_in_sight() {
     assert_eq!(enabled(&h, "Scroll tabs right"), Some(true), "and then there is more to the right");
     let open = h.get_by_label("Open").rect();
     let right = h.get_by_label("Scroll tabs right").rect();
-    assert!(right.right() <= open.left() + 0.5 && open.right() <= h.get_by_label("Discord").rect().left());
-    // Twenty: Open stays in sight left of Discord.
+    assert!(right.right() <= open.left() + 0.5 && open.right() <= STRIP_RIGHT);
+    // Twenty: Open stays in sight at the strip's end.
     for i in 0..13 {
         h.state_mut().open_bytes(&format!("more-{i:02}.pdf"), None, FIXTURE.to_vec()).unwrap();
     }
     h.run_steps(4);
     let open = h.get_by_label("Open").rect();
-    let discord = h.get_by_label("Discord").rect();
-    assert!(open.left() > 0.0 && open.right() <= discord.left(), "Open {open:?} stays in sight left of Discord {discord:?}");
+    assert!(open.left() > 0.0 && open.right() <= STRIP_RIGHT, "Open {open:?} stays in sight at the strip's end");
 }
 
 /// macOS (#789): with the integrated title bar, the strip is the 28 pt band AppKit centres the
@@ -684,7 +689,7 @@ fn the_integrated_title_bar_is_the_traffic_light_band() {
         app.open_bytes("band.pdf", None, FIXTURE.to_vec()).unwrap();
     });
     let band = 28.0;
-    for label in ["Home", "band.pdf", "Open", "Discord", "Keyboard shortcuts"] {
+    for label in ["Home", "band.pdf", "Open"] {
         let r = h.get_by_label(label).rect();
         assert!(r.top() >= 0.0 && r.bottom() <= band, "{label}: {r:?} inside the {band} pt title bar");
         assert!(r.height() >= 24.0, "{label}: {r:?} stays clickable");
@@ -1864,4 +1869,37 @@ fn full_screen_neither_is_remembered_nor_hides_the_last_view() {
     let view = &mut h.state_mut().views[0];
     view.leave_presentation();
     assert_eq!((view.fit, view.zoom, view.layout, view.continuous), (Fit::None, 0.5, PageLayout::TwoUp, false), "the remembered view");
+}
+
+/// One row under the tabs (#one-row chrome): the menus, the mode tabs, search, the document's
+/// buttons and the app's (Discord, help, theme, preferences) share the mode bar, and the tab
+/// strip holds only home, the tabs and Open. A narrower window drops the Discord label and then
+/// shrinks the search before anything runs into the mode tabs.
+#[test]
+fn the_app_buttons_share_the_mode_bar_row_at_every_width() {
+    for width in [1400.0, 1024.0, 900.0] {
+        let mut h = Harness::builder().with_size(egui::vec2(width, 700.0)).build_eframe(|_cc| {
+            let mut app = PdfCraftApp::new();
+            app.set_option("language", "en").unwrap();
+            app.open_bytes("row.pdf", None, FIXTURE.to_vec()).unwrap();
+            app
+        });
+        h.run_steps(4);
+        let open = h.get_by_label("Open").rect();
+        let search = h.get_by_label("Find tools and commands").rect();
+        let sign = h.get_by_label("E-Sign").rect();
+        let print = h.get_by_label_contains("Print (").rect();
+        assert!(search.top() >= open.bottom() - 0.5, "{width}: search {search:?} is below the tab strip");
+        assert!(search.left() >= sign.right() - 0.5, "{width}: search {search:?} clears the mode tabs {sign:?}");
+        let mut left = print.right();
+        for label in ["Discord", "Keyboard shortcuts", "Display theme:", "Preferences"] {
+            let r = h.get_by_label_contains(label).rect();
+            assert!((r.center().y - search.center().y).abs() < 1.0, "{width}: {label} {r:?} is on the search's row {search:?}");
+            assert!(r.left() >= left - 0.5, "{width}: {label} {r:?} follows the one before it ({left})");
+            assert!(r.right() <= width, "{width}: {label} {r:?} is in the window");
+            left = r.right();
+        }
+        let discord = h.get_by_label("Discord").rect();
+        assert_eq!(discord.width() > 40.0, width >= 1400.0, "{width}: Discord keeps its label only when there is room ({discord:?})");
+    }
 }
