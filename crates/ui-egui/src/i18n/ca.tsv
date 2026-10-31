@@ -2838,3 +2838,15 @@ theme	Appearance	Aspecte
 
 # Comments panel: each reply's own "…" menu (AI-assisted, not separately native-reviewed)
 	Options for this reply	Opcions d'aquesta resposta
+	Interface font	Tipus de lletra de la interfície
+	Chinese, Japanese and Korean font	Tipus de lletra per al xinès, el japonès i el coreà
+	Choose font file…	Tria un fitxer de tipus de lletra…
+	Reset to default	Restableix el valor per defecte
+	A chosen font draws the whole interface; characters it lacks are drawn with the default fonts.	El tipus de lletra triat s'utilitza a tota la interfície; els caràcters que li manquen es mostren amb els tipus de lletra per defecte.
+	Couldn't use the font {name}: {reason}. The default font is used instead.	No es pot utilitzar el tipus de lletra {name}: {reason}. S'utilitza el tipus de lletra per defecte.
+	the file is larger than {size} MB	el fitxer supera els {size} MB
+	the file couldn't be read ({e})	no s'ha pogut llegir el fitxer ({e})
+	the file is not a font that can be used	el fitxer no és un tipus de lletra utilitzable
+	it has no Latin letters	no té lletres llatines
+	it has no Chinese, Japanese or Korean characters	no té caràcters xinesos, japonesos ni coreans
+	fonts can't be read from files here	aquí no es poden llegir tipus de lletra des de fitxers

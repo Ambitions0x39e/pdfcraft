@@ -2579,3 +2579,15 @@ animation effects	Off	Aus
 # Comments panel: each reply's own "…" menu (AI-assisted, not separately native-reviewed)
 	Options for this reply	Optionen für diese Antwort
 	Export value	Exportwert
+	Interface font	Schriftart der Oberfläche
+	Chinese, Japanese and Korean font	Schriftart für Chinesisch, Japanisch und Koreanisch
+	Choose font file…	Schriftdatei auswählen…
+	Reset to default	Auf Standard zurücksetzen
+	A chosen font draws the whole interface; characters it lacks are drawn with the default fonts.	Die gewählte Schrift wird für die ganze Oberfläche verwendet; fehlende Zeichen werden mit den Standardschriften dargestellt.
+	Couldn't use the font {name}: {reason}. The default font is used instead.	Die Schrift {name} kann nicht verwendet werden: {reason}. Stattdessen wird die Standardschrift verwendet.
+	the file is larger than {size} MB	die Datei ist größer als {size} MB
+	the file couldn't be read ({e})	die Datei konnte nicht gelesen werden ({e})
+	the file is not a font that can be used	die Datei ist keine verwendbare Schrift
+	it has no Latin letters	sie enthält keine lateinischen Buchstaben
+	it has no Chinese, Japanese or Korean characters	sie enthält keine chinesischen, japanischen oder koreanischen Zeichen
+	fonts can't be read from files here	Schriften können hier nicht aus Dateien gelesen werden

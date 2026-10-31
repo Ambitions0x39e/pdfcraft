@@ -2810,3 +2810,15 @@ theme	Appearance	Tampilan
 
 # Comments panel: each reply's own "…" menu (AI-assisted, not separately native-reviewed)
 	Options for this reply	Opsi untuk balasan ini
+	Interface font	Font antarmuka
+	Chinese, Japanese and Korean font	Font Tionghoa, Jepang, dan Korea
+	Choose font file…	Pilih file font…
+	Reset to default	Kembalikan ke bawaan
+	A chosen font draws the whole interface; characters it lacks are drawn with the default fonts.	Font yang dipilih digunakan di seluruh antarmuka; karakter yang tidak dimilikinya ditampilkan dengan font bawaan.
+	Couldn't use the font {name}: {reason}. The default font is used instead.	Tidak dapat menggunakan font {name}: {reason}. Font bawaan digunakan sebagai gantinya.
+	the file is larger than {size} MB	file lebih besar dari {size} MB
+	the file couldn't be read ({e})	file tidak dapat dibaca ({e})
+	the file is not a font that can be used	file bukan font yang dapat digunakan
+	it has no Latin letters	tidak memiliki huruf Latin
+	it has no Chinese, Japanese or Korean characters	tidak memiliki karakter Tionghoa, Jepang, atau Korea
+	fonts can't be read from files here	font tidak dapat dibaca dari file di sini

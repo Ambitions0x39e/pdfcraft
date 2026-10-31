@@ -2674,3 +2674,15 @@ animation effects	Off	Wyłączone
 # Comments panel: each reply's own "…" menu (AI-assisted, not separately native-reviewed)
 	Options for this reply	Opcje tej odpowiedzi
 	Export value	Wartość eksportowa
+	Interface font	Czcionka interfejsu
+	Chinese, Japanese and Korean font	Czcionka dla chińskiego, japońskiego i koreańskiego
+	Choose font file…	Wybierz plik czcionki…
+	Reset to default	Przywróć domyślne
+	A chosen font draws the whole interface; characters it lacks are drawn with the default fonts.	Wybrana czcionka jest używana w całym interfejsie; brakujące w niej znaki są wyświetlane czcionkami domyślnymi.
+	Couldn't use the font {name}: {reason}. The default font is used instead.	Nie można użyć czcionki {name}: {reason}. Zamiast niej używana jest czcionka domyślna.
+	the file is larger than {size} MB	plik jest większy niż {size} MB
+	the file couldn't be read ({e})	nie można odczytać pliku ({e})
+	the file is not a font that can be used	plik nie jest użyteczną czcionką
+	it has no Latin letters	nie ma liter łacińskich
+	it has no Chinese, Japanese or Korean characters	nie ma znaków chińskich, japońskich ani koreańskich
+	fonts can't be read from files here	tutaj nie można wczytywać czcionek z plików

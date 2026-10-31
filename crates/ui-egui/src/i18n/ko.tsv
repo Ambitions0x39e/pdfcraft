@@ -2809,3 +2809,15 @@ theme	Appearance	모양
 
 # Comments panel: each reply's own "…" menu (AI-assisted, not separately native-reviewed)
 	Options for this reply	이 답글의 옵션
+	Interface font	인터페이스 글꼴
+	Chinese, Japanese and Korean font	한중일 글꼴
+	Choose font file…	글꼴 파일 선택…
+	Reset to default	기본값으로 재설정
+	A chosen font draws the whole interface; characters it lacks are drawn with the default fonts.	선택한 글꼴로 인터페이스 전체를 표시합니다. 글꼴에 없는 문자는 기본 글꼴로 표시됩니다.
+	Couldn't use the font {name}: {reason}. The default font is used instead.	글꼴 {name}을(를) 사용할 수 없습니다: {reason}. 기본 글꼴을 사용합니다.
+	the file is larger than {size} MB	파일이 {size}MB보다 큽니다
+	the file couldn't be read ({e})	파일을 읽을 수 없습니다({e})
+	the file is not a font that can be used	사용할 수 있는 글꼴 파일이 아닙니다
+	it has no Latin letters	라틴 문자가 없습니다
+	it has no Chinese, Japanese or Korean characters	한중일 문자가 없습니다
+	fonts can't be read from files here	여기에서는 파일에서 글꼴을 읽을 수 없습니다

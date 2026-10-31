@@ -216,6 +216,26 @@ pub fn install_fonts_for(ctx: &egui::Context, cjk: CjkPreference) {
     ctx.set_fonts(installed_font_definitions(cjk));
 }
 
+/// [`install_fonts_for`] with the faces the user chose in Preferences ([`interface_font`]) in
+/// front. A chosen face that can't be used is left out, the defaults keep its place, and it is
+/// returned with the reason so the caller can say so.
+pub fn install_fonts_with(ctx: &egui::Context, cjk: CjkPreference, chosen: &interface_font::InterfaceFonts) -> Vec<interface_font::Rejected> {
+    let (fonts, rejected) = installed_font_definitions_with(cjk, chosen);
+    ctx.set_fonts(fonts);
+    rejected
+}
+
+/// What [`install_fonts_with`] installs: [`installed_font_definitions`] with the chosen faces
+/// added ([`interface_font::install`]), and the chosen faces that were not.
+pub fn installed_font_definitions_with(
+    cjk: CjkPreference,
+    chosen: &interface_font::InterfaceFonts,
+) -> (FontDefinitions, Vec<interface_font::Rejected>) {
+    let mut fonts = installed_font_definitions(cjk);
+    let rejected = interface_font::install(&mut fonts, chosen);
+    (fonts, rejected)
+}
+
 /// The name of the installed face [`installed_font_definitions`] may add after the embedded ones.
 pub const SYSTEM_FALLBACK: &str = "system-fallback";
 /// The name of the installed Devanagari (Hindi) face [`installed_font_definitions`] may add.
@@ -537,6 +557,8 @@ pub fn contrast(a: Color32, b: Color32) -> f32 {
 pub fn readable(color: Color32, background: Color32, text: Color32) -> Color32 {
     (0..=4).map(|step| color.lerp_to_gamma(text, step as f32 / 4.0)).find(|c| contrast(*c, background) >= 3.0).unwrap_or(text)
 }
+
+pub mod interface_font;
 
 #[cfg(test)]
 mod tests;

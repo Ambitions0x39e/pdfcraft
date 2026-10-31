@@ -2770,3 +2770,15 @@ certificate	Version	وەشان
 @plural	{n} more formula reads a missing field.|{n} more formulas read missing fields.	{n} more formula reads a missing field.|{n} more formulas read missing fields.
 @plural	{fields} builds some field names as it runs, so those reads aren't checked.|{fields} build some field names as they run, so those reads aren't checked.	{fields} builds some field names as it runs, so those reads aren't checked.|{fields} build some field names as they run, so those reads aren't checked.
 @plural	{fields} is missing|{fields} are missing	{fields} is missing|{fields} are missing
+	Interface font	فۆنتی ڕووکار
+	Chinese, Japanese and Korean font	فۆنتی چینی، ژاپۆنی و کۆری
+	Choose font file…	هەڵبژاردنی پەڕگەی فۆنت…
+	Reset to default	گەڕاندنەوە بۆ بنەڕەت
+	A chosen font draws the whole interface; characters it lacks are drawn with the default fonts.	فۆنتی هەڵبژێردراو لە هەموو ڕووکارەکەدا بەکاردێت؛ ئەو پیتانەی تێیدا نین بە فۆنتە بنەڕەتییەکان پیشان دەدرێن.
+	Couldn't use the font {name}: {reason}. The default font is used instead.	ناتوانرێت فۆنتی {name} بەکاربهێنرێت: {reason}. لە جیاتی ئەوە فۆنتی بنەڕەت بەکاردێت.
+	the file is larger than {size} MB	پەڕگەکە لە {size} مێگابایت گەورەترە
+	the file couldn't be read ({e})	پەڕگەکە نەخوێندرایەوە ({e})
+	the file is not a font that can be used	پەڕگەکە فۆنتێکی بەکارهاتوو نییە
+	it has no Latin letters	پیتی لاتینی تێدا نییە
+	it has no Chinese, Japanese or Korean characters	پیتی چینی، ژاپۆنی یان کۆری تێدا نییە
+	fonts can't be read from files here	لێرەدا ناتوانرێت فۆنت لە پەڕگەوە بخوێندرێتەوە

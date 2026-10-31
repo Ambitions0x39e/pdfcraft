@@ -2584,3 +2584,15 @@ animation effects	Off	Ανενεργά
 # Comments panel: each reply's own "…" menu (AI-assisted, not separately native-reviewed)
 	Options for this reply	Επιλογές για αυτήν την απάντηση
 	Export value	Τιμή εξαγωγής
+	Interface font	Γραμματοσειρά περιβάλλοντος
+	Chinese, Japanese and Korean font	Γραμματοσειρά για κινεζικά, ιαπωνικά και κορεατικά
+	Choose font file…	Επιλογή αρχείου γραμματοσειράς…
+	Reset to default	Επαναφορά προεπιλογής
+	A chosen font draws the whole interface; characters it lacks are drawn with the default fonts.	Η επιλεγμένη γραμματοσειρά χρησιμοποιείται σε όλο το περιβάλλον· οι χαρακτήρες που της λείπουν εμφανίζονται με τις προεπιλεγμένες γραμματοσειρές.
+	Couldn't use the font {name}: {reason}. The default font is used instead.	Δεν είναι δυνατή η χρήση της γραμματοσειράς {name}: {reason}. Χρησιμοποιείται η προεπιλεγμένη γραμματοσειρά.
+	the file is larger than {size} MB	το αρχείο είναι μεγαλύτερο από {size} MB
+	the file couldn't be read ({e})	δεν ήταν δυνατή η ανάγνωση του αρχείου ({e})
+	the file is not a font that can be used	το αρχείο δεν είναι χρησιμοποιήσιμη γραμματοσειρά
+	it has no Latin letters	δεν έχει λατινικά γράμματα
+	it has no Chinese, Japanese or Korean characters	δεν έχει κινεζικούς, ιαπωνικούς ή κορεατικούς χαρακτήρες
+	fonts can't be read from files here	εδώ δεν είναι δυνατή η ανάγνωση γραμματοσειρών από αρχεία

@@ -2481,3 +2481,15 @@ animation effects	Off	ປິດ
 	Unchecked reads	Unchecked reads
 	{field} reads fields named as it runs	{field} reads fields named as it runs
 	Some names are built as it runs	Some names are built as it runs
+	Interface font	ຟອນຂອງສ່ວນຕິດຕໍ່
+	Chinese, Japanese and Korean font	ຟອນພາສາຈີນ, ຍີ່ປຸ່ນ ແລະ ເກົາຫຼີ
+	Choose font file…	ເລືອກໄຟລ໌ຟອນ…
+	Reset to default	ຕັ້ງຄືນເປັນຄ່າເລີ່ມຕົ້ນ
+	A chosen font draws the whole interface; characters it lacks are drawn with the default fonts.	ຟອນທີ່ເລືອກຈະໃຊ້ກັບສ່ວນຕິດຕໍ່ທັງໝົດ; ຕົວອັກສອນທີ່ມັນບໍ່ມີຈະສະແດງດ້ວຍຟອນເລີ່ມຕົ້ນ.
+	Couldn't use the font {name}: {reason}. The default font is used instead.	ບໍ່ສາມາດໃຊ້ຟອນ {name}: {reason}. ຈະໃຊ້ຟອນເລີ່ມຕົ້ນແທນ.
+	the file is larger than {size} MB	ໄຟລ໌ໃຫຍ່ກວ່າ {size} MB
+	the file couldn't be read ({e})	ບໍ່ສາມາດອ່ານໄຟລ໌ໄດ້ ({e})
+	the file is not a font that can be used	ໄຟລ໌ນີ້ບໍ່ແມ່ນຟອນທີ່ໃຊ້ໄດ້
+	it has no Latin letters	ມັນບໍ່ມີຕົວອັກສອນລາແຕັງ
+	it has no Chinese, Japanese or Korean characters	ມັນບໍ່ມີຕົວອັກສອນຈີນ, ຍີ່ປຸ່ນ ຫຼື ເກົາຫຼີ
+	fonts can't be read from files here	ບໍ່ສາມາດອ່ານຟອນຈາກໄຟລ໌ຢູ່ບ່ອນນີ້ໄດ້

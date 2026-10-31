@@ -328,6 +328,22 @@ impl PdfCraftApp {
                 };
             }
             ("ui-scale", _) => self.ui_scale = ui_scale::parse(value)?,
+            // `--interface-font PATH` / `--interface-cjk-font PATH`: Preferences ▸ Interface font
+            // and ▸ Chinese, Japanese and Korean font (the file's first face); `default` resets.
+            // The file is checked now, so a bad one is an error here and not a later notice.
+            ("interface-font" | "interface-cjk-font", _) => {
+                use theme::interface_font::{self, Slot};
+                let slot = if key == "interface-font" { Slot::Interface } else { Slot::Cjk };
+                let choice = match value.trim() {
+                    "" => return Err(format!("{key} must be a font file or default")),
+                    "default" => None,
+                    path => Some(interface_font::choose(path, None, slot).map_err(|p| format!("{key}: {}", p.message()))?),
+                };
+                match slot {
+                    Slot::Interface => self.interface_fonts.ui = choice,
+                    Slot::Cjk => self.interface_fonts.cjk = choice,
+                }
+            }
             // `--secured-notice false`: no notice above the pages that a document is secured.
             ("secured-notice", _) => {
                 self.show_secured_notice = match value {

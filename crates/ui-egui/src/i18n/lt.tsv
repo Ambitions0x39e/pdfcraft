@@ -2839,3 +2839,15 @@ theme	Appearance	Išvaizda
 # Comments panel: each reply's own "…" menu (AI-assisted, not separately native-reviewed)
 	Options for this reply	Šio atsakymo parinktys
 	Export value	Eksporto reikšmė
+	Interface font	Sąsajos šriftas
+	Chinese, Japanese and Korean font	Kinų, japonų ir korėjiečių šriftas
+	Choose font file…	Pasirinkti šrifto failą…
+	Reset to default	Atkurti numatytąjį
+	A chosen font draws the whole interface; characters it lacks are drawn with the default fonts.	Pasirinktas šriftas naudojamas visoje sąsajoje; jame trūkstami simboliai rodomi numatytaisiais šriftais.
+	Couldn't use the font {name}: {reason}. The default font is used instead.	Šrifto {name} naudoti negalima: {reason}. Naudojamas numatytasis šriftas.
+	the file is larger than {size} MB	failas didesnis nei {size} MB
+	the file couldn't be read ({e})	failo nepavyko perskaityti ({e})
+	the file is not a font that can be used	failas nėra tinkamas šriftas
+	it has no Latin letters	jame nėra lotyniškų raidžių
+	it has no Chinese, Japanese or Korean characters	jame nėra kinų, japonų ar korėjiečių simbolių
+	fonts can't be read from files here	čia šriftų iš failų skaityti negalima

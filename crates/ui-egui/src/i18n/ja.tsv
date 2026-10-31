@@ -2578,3 +2578,15 @@ animation effects	Off	オフ
 # Comments panel: each reply's own "…" menu (AI-assisted, not separately native-reviewed)
 	Options for this reply	この返信のオプション
 	Export value	書き出し値
+	Interface font	表示フォント
+	Chinese, Japanese and Korean font	中国語・日本語・韓国語のフォント
+	Choose font file…	フォントファイルを選択…
+	Reset to default	既定に戻す
+	A chosen font draws the whole interface; characters it lacks are drawn with the default fonts.	選んだフォントでインターフェイス全体を表示します。含まれない文字は既定のフォントで表示されます。
+	Couldn't use the font {name}: {reason}. The default font is used instead.	フォント {name} を使用できません: {reason}。既定のフォントを使用します。
+	the file is larger than {size} MB	ファイルが {size} MB を超えています
+	the file couldn't be read ({e})	ファイルを読み込めません ({e})
+	the file is not a font that can be used	使用できるフォントファイルではありません
+	it has no Latin letters	ラテン文字がありません
+	it has no Chinese, Japanese or Korean characters	中国語・日本語・韓国語の文字がありません
+	fonts can't be read from files here	ここではファイルからフォントを読み込めません

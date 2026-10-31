@@ -2564,3 +2564,15 @@ animation effects	Off	Joaktiv
 
 # Comments panel: each reply's own "…" menu (AI-assisted, not separately native-reviewed)
 	Options for this reply	Opsionet për këtë përgjigje
+	Interface font	Shkronjat e ndërfaqes
+	Chinese, Japanese and Korean font	Shkronjat për kinezisht, japonisht dhe koreanisht
+	Choose font file…	Zgjidh skedarin e shkronjave…
+	Reset to default	Rikthe parazgjedhjen
+	A chosen font draws the whole interface; characters it lacks are drawn with the default fonts.	Shkronjat e zgjedhura përdoren në gjithë ndërfaqen; shenjat që u mungojnë shfaqen me shkronjat parazgjedhje.
+	Couldn't use the font {name}: {reason}. The default font is used instead.	Shkronjat {name} nuk mund të përdoren: {reason}. Në vend të tyre përdoren shkronjat parazgjedhje.
+	the file is larger than {size} MB	skedari është më i madh se {size} MB
+	the file couldn't be read ({e})	skedari nuk u lexua dot ({e})
+	the file is not a font that can be used	skedari nuk është shkronja që mund të përdoren
+	it has no Latin letters	nuk ka shkronja latine
+	it has no Chinese, Japanese or Korean characters	nuk ka shenja kineze, japoneze ose koreane
+	fonts can't be read from files here	këtu shkronjat nuk mund të lexohen nga skedarët

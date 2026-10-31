@@ -2847,3 +2847,15 @@ theme	Appearance	Teema
 
 # Comments panel: each reply's own "…" menu (AI-assisted, not separately native-reviewed)
 	Options for this reply	Tämän vastauksen asetukset
+	Interface font	Käyttöliittymän fontti
+	Chinese, Japanese and Korean font	Kiinan, japanin ja korean fontti
+	Choose font file…	Valitse fonttitiedosto…
+	Reset to default	Palauta oletus
+	A chosen font draws the whole interface; characters it lacks are drawn with the default fonts.	Valittua fonttia käytetään koko käyttöliittymässä; siitä puuttuvat merkit näytetään oletusfonteilla.
+	Couldn't use the font {name}: {reason}. The default font is used instead.	Fonttia {name} ei voi käyttää: {reason}. Sen sijaan käytetään oletusfonttia.
+	the file is larger than {size} MB	tiedosto on suurempi kuin {size} Mt
+	the file couldn't be read ({e})	tiedostoa ei voitu lukea ({e})
+	the file is not a font that can be used	tiedosto ei ole käyttökelpoinen fontti
+	it has no Latin letters	siinä ei ole latinalaisia kirjaimia
+	it has no Chinese, Japanese or Korean characters	siinä ei ole kiinalaisia, japanilaisia tai korealaisia merkkejä
+	fonts can't be read from files here	täällä fontteja ei voi lukea tiedostoista

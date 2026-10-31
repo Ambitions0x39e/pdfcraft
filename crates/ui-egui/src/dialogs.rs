@@ -11,6 +11,8 @@ pub(super) mod appearance;
 pub mod bookmark_styles_ui;
 pub(super) mod comment_props;
 pub(super) mod credits;
+#[cfg(not(target_arch = "wasm32"))]
+pub(super) mod interface_font_ui;
 pub(super) mod marks_ui;
 pub(super) mod pageboxes;
 pub(super) mod palette;

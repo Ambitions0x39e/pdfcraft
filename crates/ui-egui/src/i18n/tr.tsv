@@ -2574,3 +2574,15 @@ animation effects	Off	Kapalı
 # Comments panel: each reply's own "…" menu (AI-assisted, not separately native-reviewed)
 	Options for this reply	Bu yanıtın seçenekleri
 	Export value	Dışa aktarma değeri
+	Interface font	Arayüz yazı tipi
+	Chinese, Japanese and Korean font	Çince, Japonca ve Korece yazı tipi
+	Choose font file…	Yazı tipi dosyası seç…
+	Reset to default	Varsayılana sıfırla
+	A chosen font draws the whole interface; characters it lacks are drawn with the default fonts.	Seçilen yazı tipi tüm arayüzde kullanılır; içinde olmayan karakterler varsayılan yazı tipleriyle gösterilir.
+	Couldn't use the font {name}: {reason}. The default font is used instead.	{name} yazı tipi kullanılamıyor: {reason}. Bunun yerine varsayılan yazı tipi kullanılıyor.
+	the file is larger than {size} MB	dosya {size} MB'tan büyük
+	the file couldn't be read ({e})	dosya okunamadı ({e})
+	the file is not a font that can be used	dosya kullanılabilir bir yazı tipi değil
+	it has no Latin letters	Latin harfleri yok
+	it has no Chinese, Japanese or Korean characters	Çince, Japonca veya Korece karakterleri yok
+	fonts can't be read from files here	burada yazı tipleri dosyalardan okunamaz

@@ -420,6 +420,9 @@ pub(crate) fn preferences_body(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tok
             .small()
             .color(t.text_muted),
     );
+    // Font files and installed faces are read from the file system, which the web build has not.
+    #[cfg(not(target_arch = "wasm32"))]
+    crate::interface_font_ui::preferences_rows(ui, app, t);
     ui.horizontal(|ui| {
         ui.label(tl!("Tools panel side"));
         let right = app.side_panels.tools_on_right();

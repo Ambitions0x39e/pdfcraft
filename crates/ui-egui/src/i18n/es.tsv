@@ -2901,3 +2901,15 @@ theme	Appearance	Aspecto
 # Comments panel: each reply's own "…" menu (AI-assisted, not separately native-reviewed)
 	Options for this reply	Opciones de esta respuesta
 	Export value	Valor de exportación
+	Interface font	Fuente de la interfaz
+	Chinese, Japanese and Korean font	Fuente para chino, japonés y coreano
+	Choose font file…	Elegir archivo de fuente…
+	Reset to default	Restablecer valor predeterminado
+	A chosen font draws the whole interface; characters it lacks are drawn with the default fonts.	La fuente elegida se usa en toda la interfaz; los caracteres que le faltan se muestran con las fuentes predeterminadas.
+	Couldn't use the font {name}: {reason}. The default font is used instead.	No se puede usar la fuente {name}: {reason}. Se usa la fuente predeterminada.
+	the file is larger than {size} MB	el archivo supera los {size} MB
+	the file couldn't be read ({e})	no se pudo leer el archivo ({e})
+	the file is not a font that can be used	el archivo no es una fuente utilizable
+	it has no Latin letters	no tiene letras latinas
+	it has no Chinese, Japanese or Korean characters	no tiene caracteres chinos, japoneses ni coreanos
+	fonts can't be read from files here	aquí no se pueden leer fuentes desde archivos

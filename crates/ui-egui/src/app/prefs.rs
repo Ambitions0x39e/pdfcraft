@@ -146,6 +146,9 @@ impl PdfCraftApp {
         v["comment_tool_pinned"] = serde_json::Value::Bool(self.comment_prefs.pinned);
         v["show_secured_notice"] = serde_json::Value::Bool(self.show_secured_notice);
         v["organize_zoom"] = serde_json::json!(self.organize_zoom);
+        // Null keeps the default faces.
+        v["interface_font"] = serde_json::json!(self.interface_fonts.ui);
+        v["interface_cjk_font"] = serde_json::json!(self.interface_fonts.cjk);
         // Canonical names survive changes to the order of PAPERS and do not depend on UI language.
         v["print_paper"] = serde_json::json!(pdfcraft_engine::print::PAPERS.get(self.print_draft.paper).map(|(name, _)| *name));
         v.to_string()
@@ -282,6 +285,10 @@ impl PdfCraftApp {
         }
         // Settings are untrusted: a size out of range follows the system instead.
         self.ui_scale = v["ui_scale"].as_f64().and_then(ui_scale::valid);
+        // Settings are untrusted: a malformed choice keeps the default, and a file that turns out
+        // not to be a usable font falls back when the fonts are installed.
+        self.interface_fonts.ui = theme::interface_font::FontChoice::from_json(&v["interface_font"]);
+        self.interface_fonts.cjk = theme::interface_font::FontChoice::from_json(&v["interface_cjk_font"]);
         // Settings are untrusted: an unusable pattern keeps the default.
         if let Some(f) = v["date_format"].as_str() {
             let _ = self.session.set_date_format(f);

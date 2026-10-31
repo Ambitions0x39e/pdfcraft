@@ -96,6 +96,8 @@ use dialogs::appearance;
 pub use dialogs::bookmark_styles_ui;
 use dialogs::comment_props;
 use dialogs::credits;
+#[cfg(not(target_arch = "wasm32"))]
+use dialogs::interface_font_ui;
 use dialogs::marks_ui;
 use dialogs::pageboxes;
 use dialogs::palette;
@@ -306,6 +308,9 @@ pub struct PdfCraftApp {
     pub language: String,
     /// Preferences ▸ Interface size as a factor, or `None` to follow [`Self::system_text_scale`].
     pub ui_scale: Option<f32>,
+    /// Preferences ▸ Interface font and ▸ Chinese, Japanese and Korean font: faces the user chose
+    /// to draw the interface with, in front of the default ones. `None` keeps the default.
+    pub interface_fonts: theme::interface_font::InterfaceFonts,
     /// The desktop's text scaling (GNOME's text scaling factor), which the desktop app reads at
     /// launch. 1.0 elsewhere, so tests and screenshots don't depend on the machine.
     pub system_text_scale: f32,
@@ -576,6 +581,8 @@ pub struct PdfCraftApp {
     fonts_ready: bool,
     /// The CJK fallback order the installed fonts follow (see `theme::installed_font_definitions`).
     fonts_cjk: theme::CjkPreference,
+    /// The [`Self::interface_fonts`] the installed fonts were built with.
+    fonts_chosen: theme::interface_font::InterfaceFonts,
     /// The window title last sent to the platform.
     pub window_title: String,
     /// The web page's title last set: the window title, but always with the file's name.
