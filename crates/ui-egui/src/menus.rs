@@ -23,10 +23,8 @@ pub(super) mod tab_context;
 /// The app's name in the menus the layouts write (About, Hide, Quit).
 pub(crate) const APP_NAME: &str = "PdfCraft";
 
-/// The top bar's width after the menus: the mode tabs, the search box and the buttons.
-const ROW_AFTER_MENUS: f32 = 720.0;
 /// The narrowest the menu bar gets: one "Menu" title.
-const MIN_MENUS_WIDTH: f32 = 80.0;
+pub(crate) const MIN_MENUS_WIDTH: f32 = 80.0;
 
 /// Menu-only commands. The registry's commands keep their own ids.
 pub(crate) const CUT: &str = "edit.cut";
@@ -570,14 +568,16 @@ impl PdfCraftApp {
     }
 
     /// The menu bar drawn in the window (Windows, Linux, the web, and macOS when the native one
-    /// couldn't be installed), where the top bar starts. Runs the commands chosen.
-    pub(crate) fn menu_bar_ui(&mut self, ui: &mut egui::Ui) {
+    /// couldn't be installed), where the top bar starts, leaving `after` points of the row for
+    /// what follows it. Runs the commands chosen.
+    pub(crate) fn menu_bar_ui(&mut self, ui: &mut egui::Ui, after: f32) {
         let ctx = ui.ctx().clone();
         let bar = craft_menu::layout(&self.menu_bar(&ctx), Target::current(), &layout_options()).bar;
         let gate = self.menu_gate(&ctx);
-        // The mode tabs, search and buttons follow the bar in the same row: it takes its titles'
-        // width, less when the row is short, where the menus that don't fit move into its "⋯".
-        let fit = (ui.available_width() - ROW_AFTER_MENUS).max(MIN_MENUS_WIDTH);
+        // The mode tabs, search and buttons follow the bar in the same row (`after`, measured by
+        // the mode bar): it takes its titles' width, less when the row is short, where the menus
+        // that don't fit move into its "⋯".
+        let fit = (ui.available_width() - after).max(MIN_MENUS_WIDTH);
         let chosen = craft_menu::MenuBarUi::new(&bar)
             .gate(gate)
             .label(&translate)

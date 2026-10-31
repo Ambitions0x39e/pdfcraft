@@ -108,12 +108,20 @@ pub(crate) fn paint_left(ui: &egui::Ui, pos: egui::Pos2, text: &str, font: egui:
     ui.painter().with_clip_rect(clip).text(pos, Align2::LEFT_CENTER, shown, font, color);
 }
 
+fn mode_tab_font(active: bool) -> egui::FontId {
+    if active { theme::semibold(13.5) } else { theme::medium(13.5) }
+}
+
+/// The width [`mode_tab`] takes for `label`, so a row can plan around its tabs before drawing them.
+pub fn mode_tab_width(ui: &egui::Ui, label: &str, active: bool) -> f32 {
+    ui.fonts_mut(|f| f.layout_no_wrap(label.to_owned(), mode_tab_font(active), Color32::PLACEHOLDER).size().x) + 22.0
+}
+
 /// A mode-bar tab: text with an underline when active.
 pub fn mode_tab(ui: &mut egui::Ui, label: &str, active: bool) -> Response {
     let t = Tokens::get(ui.ctx());
-    let font = if active { theme::semibold(13.5) } else { theme::medium(13.5) };
-    let w = ui.fonts_mut(|f| f.layout_no_wrap(label.to_owned(), font.clone(), t.text).size().x);
-    let (rect, resp) = ui.allocate_exact_size(vec2(w + 22.0, 48.0), Sense::click());
+    let font = mode_tab_font(active);
+    let (rect, resp) = ui.allocate_exact_size(vec2(mode_tab_width(ui, label, active), 48.0), Sense::click());
     resp.widget_info(|| egui::WidgetInfo::selected(egui::Role::Button, ui.is_enabled(), active, label));
     let press = theme::Press::track(ui, &resp);
     let well = rect.shrink2(vec2(2.0, 9.0));

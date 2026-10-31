@@ -1,4 +1,8 @@
 //! Window chrome: tab strip (with the integrated macOS title bar), mode bar, right rail.
+//!
+//! The tab strip holds home, the document tabs, Open and the window controls; everything else
+//! that sits above the document (menus, mode tabs, search, the document and app buttons) shares
+//! the one mode-bar row below it.
 
 use craft_ui::panes::{Edge, Rail, RailItem, RailRequest};
 use egui::{Align, Color32, CornerRadius, Layout, Rect, Sense, Stroke, vec2};
@@ -26,9 +30,11 @@ pub const MAC_CONTENT_LEFT: f32 = MAC_LIGHTS_LEFT + 2.0 * MAC_LIGHT_PITCH + MAC_
 const TAB_STRIP: f32 = 38.0;
 const TAB_HEIGHT: f32 = 30.0;
 const STRIP_BUTTON: f32 = 28.0;
+/// The room kept free at the strip's right end, before any window controls.
+const STRIP_END: f32 = 12.0;
 
 /// Draw the window's tab strip: home and open controls, shrinkable and scrollable document tabs with drag
-/// reordering, and platform window controls.
+/// reordering, and platform window controls. It doubles as the title bar (drag, double-click).
 pub fn tab_strip(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let t = Tokens::get(ui.ctx());
     // macOS: the strip is the 28 pt title bar, so the traffic lights are centred in it; tabs and
@@ -69,11 +75,9 @@ pub fn tab_strip(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                     app.active = None;
                     app.combine_tab.focused = false;
                 }
-                // Reserve the three icon buttons, Discord and their gaps outside the scrolling tabs.
-                let controls_width = ui.fonts_mut(|f| f.layout_no_wrap("Discord".into(), theme::medium(13.0), t.text).size().x)
-                    + 3.0 * button
-                    + 54.0
-                    + window_controls::width(&controls.right);
+                // Reserve the window controls (and a margin) outside the scrolling tabs; the app's
+                // own buttons live at the right end of the mode bar.
+                let controls_width = STRIP_END + window_controls::width(&controls.right);
                 // Open stays in sight after the tabs: its icon, text and padding, and the gaps around it.
                 let open_width = ui.fonts_mut(|f| f.layout_no_wrap(tl!("Open").into(), theme::medium(13.0), t.text).size().x) + 38.0 + 12.0;
                 let mut tabs_width = (ui.available_width() - controls_width - open_width).max(0.0);
@@ -287,38 +291,12 @@ pub fn tab_strip(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                         });
                         ui.add_space(window_controls::SIDE_GAP - 4.0);
                     }
-                    if icons::button(ui, "settings", button, false, tl!("Preferences")).clicked() {
-                        app.execute("app.preferences");
-                    }
-                    let (icon, label) = match app.theme_preference {
-                        ThemePreference::System => ("monitor", tl!("Use system setting")),
-                        ThemePreference::Light => ("sun", tl!("Light gray")),
-                        ThemePreference::Dark => ("moon", tl!("Dark gray")),
-                    };
-                    let tip = format!("{}: {label}", tl!("Display theme"));
-                    let response = icons::button(ui, icon, button, false, &tip);
-                    // A click cycles System, Light, Dark; a right-click opens the menu.
-                    if response.clicked() {
-                        app.execute(match app.theme_preference {
-                            ThemePreference::System => "view.theme.light",
-                            ThemePreference::Light => "view.theme.dark",
-                            ThemePreference::Dark => "view.theme.system",
-                        });
-                    }
-                    egui::Popup::context_menu(&response).id(response.id.with("theme_menu")).show(|ui| appearance_menu(app, ui));
-                    if icons::button(ui, "circle-help", button, false, tl!("Keyboard shortcuts")).clicked() {
-                        app.dialog = Some(Dialog::Shortcuts);
-                    }
-                    // One click to the community, from anywhere in the app.
-                    if widgets::ghost_button_sized(ui, "messages-square", "Discord", tab_h).on_hover_text(pdfcraft_engine::links::DISCORD).clicked() {
-                        app.execute("help.discord");
-                    }
                 });
             });
         });
 }
 
-/// The right-click menu on the title bar's theme button.
+/// The right-click menu on the mode bar's theme button.
 fn appearance_menu(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     if ui.button(tl!("Appearance settings…")).clicked() {
         app.dialog = Some(Dialog::Preferences);
@@ -477,6 +455,65 @@ fn tab(ui: &mut egui::Ui, spec: TabSpec<'_>, close: &mut Option<usize>) -> egui:
     theme::hand(resp).on_hover_text(if dirty { crate::i18n::fmt(tl!("{name} — unsaved changes"), &[("name", &shown)]) } else { shown })
 }
 
+/// The mode bar's icon buttons.
+const BAR_BUTTON: f32 = 32.0;
+/// Space between the mode bar's right-hand buttons.
+const BAR_GAP: f32 = 4.0;
+/// The search box at full width, and the narrowest it gets before it turns into a button.
+const SEARCH_WIDTH: f32 = 260.0;
+const SEARCH_MIN_WIDTH: f32 = 150.0;
+/// The space before the search box, and the divider between the document's buttons and the app's.
+const SEARCH_GAP: f32 = 8.0;
+const CLUSTER_DIVIDER: f32 = 13.0;
+/// The divider after the menus: the space before and after its line.
+const MENUS_DIVIDER: f32 = 16.0;
+/// What the menus keep before the right end gives up room: about six English titles, so the
+/// Discord label goes and the search box narrows before File … Help fold into "⋯".
+const MENUS_PREFERRED: f32 = 340.0;
+
+/// How the mode bar's right end fits the room it has: the full row, or the Discord label
+/// dropped, then the search box narrowed (`Some(width)`) and finally a search button (`None`).
+#[derive(Clone, Copy, Debug, PartialEq)]
+struct BarEnd {
+    discord_label: bool,
+    search: Option<f32>,
+}
+
+impl BarEnd {
+    /// The width this right end takes, given the Discord button's labelled width.
+    fn width(self, discord: f32) -> f32 {
+        // Document properties, save, print; help, theme, preferences.
+        let buttons = 6.0 * BAR_BUTTON + 6.0 * BAR_GAP;
+        let discord = if self.discord_label { discord } else { BAR_BUTTON } + BAR_GAP;
+        let search = self.search.unwrap_or(BAR_BUTTON) + SEARCH_GAP + BAR_GAP;
+        buttons + discord + search + CLUSTER_DIVIDER
+    }
+
+    /// The fullest right end that leaves `room` for the menus' `preferred` width, else the most
+    /// compact one that leaves them their minimum (at worst the search button).
+    fn fit(room: f32, preferred: f32, discord: f32) -> BarEnd {
+        let full = BarEnd { discord_label: true, search: Some(SEARCH_WIDTH) };
+        if full.width(discord) + preferred <= room {
+            return full;
+        }
+        let compact = BarEnd { discord_label: false, search: Some(SEARCH_WIDTH) };
+        if compact.width(discord) + preferred <= room {
+            return compact;
+        }
+        // Then the search box narrows to keep the menus their preferred width, and once it is at
+        // its narrowest the menus fold; when even that leaves them less than their minimum, the
+        // box becomes a button. (A NaN room fails every comparison and gets the button.)
+        let narrowest = BarEnd { discord_label: false, search: Some(SEARCH_MIN_WIDTH) };
+        if narrowest.width(discord) + crate::menus::MIN_MENUS_WIDTH.min(preferred) <= room {
+            let search = SEARCH_WIDTH - (compact.width(discord) + preferred - room);
+            return BarEnd { discord_label: false, search: Some(search.clamp(SEARCH_MIN_WIDTH, SEARCH_WIDTH)) };
+        }
+        BarEnd { discord_label: false, search: None }
+    }
+}
+
+/// Draw the mode bar: the menus, the mode tabs, and at the right end the command search, the
+/// document's buttons (properties, save, print) and the app's (Discord, help, theme, preferences).
 pub fn mode_bar(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let t = Tokens::get(ui.ctx());
     egui::Panel::top("mode_bar")
@@ -485,50 +522,108 @@ pub fn mode_bar(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         .show(ui, |ui| {
             ui.horizontal_centered(|ui| {
                 ui.spacing_mut().item_spacing.x = 2.0;
-                // The menus, unless the native macOS menu bar has them.
-                if app.native_menu.is_none() {
-                    app.menu_bar_ui(ui);
-                    ui.add_space(6.0);
-                    ui.painter().vline(ui.cursor().left(), ui.max_rect().y_range().shrink(12.0), Stroke::new(1.0, t.divider));
-                    ui.add_space(10.0);
-                }
                 // Acrobat's mode bar has no Read tab: reading is what the viewer does with no tool
                 // in use. Read mode (the panes hidden) stays a View command and a default workspace.
-                for (mode, label) in [(Mode::AllTools, "All tools"), (Mode::Edit, "Edit"), (Mode::Convert, "Convert"), (Mode::Sign, "E-Sign")] {
-                    if widgets::mode_tab(ui, tl!(label), app.mode == mode).clicked() {
+                let modes =
+                    [(Mode::AllTools, tl!("All tools")), (Mode::Edit, tl!("Edit")), (Mode::Convert, tl!("Convert")), (Mode::Sign, tl!("E-Sign"))];
+                let gap = ui.spacing().item_spacing.x;
+                let tabs: f32 = modes.iter().map(|(mode, label)| widgets::mode_tab_width(ui, label, app.mode == *mode) + gap).sum();
+                let discord = ui.fonts_mut(|f| f.layout_no_wrap("Discord".into(), theme::medium(13.0), t.text).size().x) + 38.0;
+                let menus = app.native_menu.is_none();
+                let (preferred, divider) = if menus { (MENUS_PREFERRED, MENUS_DIVIDER + gap) } else { (0.0, 0.0) };
+                let end = BarEnd::fit(ui.available_width() - tabs - divider, preferred, discord);
+                // The menus, unless the native macOS menu bar has them.
+                if menus {
+                    app.menu_bar_ui(ui, tabs + divider + end.width(discord));
+                    ui.add_space(MENUS_DIVIDER / 2.0 - gap);
+                    ui.painter().vline(ui.cursor().left(), ui.max_rect().y_range().shrink(12.0), Stroke::new(1.0, t.divider));
+                    ui.add_space(MENUS_DIVIDER / 2.0);
+                }
+                for (mode, label) in modes {
+                    if widgets::mode_tab(ui, label, app.mode == mode).clicked() {
                         app.switch_mode(mode, true);
                     }
                 }
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                    ui.spacing_mut().item_spacing.x = 4.0;
-                    let has_doc = app.active.is_some();
-                    ui.add_enabled_ui(has_doc, |ui| {
-                        let tip = crate::commands::command_tip(ui.ctx(), tl!("Print ({key})"), "print.dialog");
-                        // A document that forbids printing says so here, before the dialog (#2669).
-                        let may_print = !has_doc || pdfcraft_engine::commands::command("print.dialog").is_some_and(|c| app.command_enabled(c));
-                        let mut print = ui.add_enabled_ui(may_print, |ui| icons::button(ui, "printer", 32.0, false, &tip)).inner;
-                        if !may_print {
-                            print = print.on_disabled_hover_text(crate::print_refused());
-                        }
-                        if print.clicked() {
-                            app.run_command("print.dialog");
-                        }
-                        let tip = crate::commands::command_tip(ui.ctx(), tl!("Save ({key})"), "file.save");
-                        if icons::button(ui, "save", 32.0, false, &tip).clicked() {
-                            app.run_command("file.save");
-                        }
-                        let tip = crate::commands::command_tip(ui.ctx(), tl!("Document properties ({key})"), "file.properties");
-                        if icons::button(ui, "info", 32.0, false, &tip).clicked() {
-                            app.dialog = Some(Dialog::Properties(PropsTab::Description));
-                        }
-                    });
-                    ui.add_space(8.0);
-                    if widgets::search_box(ui, tl!("Find tools and commands"), 260.0).clicked() {
+                    ui.spacing_mut().item_spacing.x = BAR_GAP;
+                    app_buttons(app, ui, end.discord_label);
+                    ui.add_space((CLUSTER_DIVIDER - BAR_GAP) / 2.0);
+                    ui.painter().vline(ui.cursor().right(), ui.max_rect().y_range().shrink(12.0), Stroke::new(1.0, t.divider));
+                    ui.add_space((CLUSTER_DIVIDER - BAR_GAP) / 2.0);
+                    document_buttons(app, ui);
+                    ui.add_space(SEARCH_GAP);
+                    let tip = tl!("Find tools and commands");
+                    let clicked = match end.search {
+                        Some(width) => widgets::search_box(ui, tip, width).clicked(),
+                        None => icons::button(ui, "search", BAR_BUTTON, false, tip).clicked(),
+                    };
+                    if clicked {
                         app.palette_open = true;
                     }
                 });
             });
         });
+}
+
+/// Print, save and document properties, right to left; inert without a document.
+fn document_buttons(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
+    let has_doc = app.active.is_some();
+    ui.add_enabled_ui(has_doc, |ui| {
+        let tip = crate::commands::command_tip(ui.ctx(), tl!("Print ({key})"), "print.dialog");
+        // A document that forbids printing says so here, before the dialog (#2669).
+        let may_print = !has_doc || pdfcraft_engine::commands::command("print.dialog").is_some_and(|c| app.command_enabled(c));
+        let mut print = ui.add_enabled_ui(may_print, |ui| icons::button(ui, "printer", BAR_BUTTON, false, &tip)).inner;
+        if !may_print {
+            print = print.on_disabled_hover_text(crate::print_refused());
+        }
+        if print.clicked() {
+            app.run_command("print.dialog");
+        }
+        let tip = crate::commands::command_tip(ui.ctx(), tl!("Save ({key})"), "file.save");
+        if icons::button(ui, "save", BAR_BUTTON, false, &tip).clicked() {
+            app.run_command("file.save");
+        }
+        let tip = crate::commands::command_tip(ui.ctx(), tl!("Document properties ({key})"), "file.properties");
+        if icons::button(ui, "info", BAR_BUTTON, false, &tip).clicked() {
+            app.dialog = Some(Dialog::Properties(PropsTab::Description));
+        }
+    });
+}
+
+/// Preferences, the display theme, keyboard shortcuts and Discord, right to left; Discord keeps
+/// its label when there is room.
+fn app_buttons(app: &mut PdfCraftApp, ui: &mut egui::Ui, discord_label: bool) {
+    if icons::button(ui, "settings", BAR_BUTTON, false, tl!("Preferences")).clicked() {
+        app.execute("app.preferences");
+    }
+    let (icon, label) = match app.theme_preference {
+        ThemePreference::System => ("monitor", tl!("Use system setting")),
+        ThemePreference::Light => ("sun", tl!("Light gray")),
+        ThemePreference::Dark => ("moon", tl!("Dark gray")),
+    };
+    let tip = format!("{}: {label}", tl!("Display theme"));
+    let response = icons::button(ui, icon, BAR_BUTTON, false, &tip);
+    // A click cycles System, Light, Dark; a right-click opens the menu.
+    if response.clicked() {
+        app.execute(match app.theme_preference {
+            ThemePreference::System => "view.theme.light",
+            ThemePreference::Light => "view.theme.dark",
+            ThemePreference::Dark => "view.theme.system",
+        });
+    }
+    egui::Popup::context_menu(&response).id(response.id.with("theme_menu")).show(|ui| appearance_menu(app, ui));
+    if icons::button(ui, "circle-help", BAR_BUTTON, false, tl!("Keyboard shortcuts")).clicked() {
+        app.dialog = Some(Dialog::Shortcuts);
+    }
+    // One click to the community, from anywhere in the app; the label goes first when the row is short.
+    let discord = if discord_label {
+        widgets::ghost_button_sized(ui, "messages-square", "Discord", BAR_BUTTON).on_hover_text(pdfcraft_engine::links::DISCORD)
+    } else {
+        icons::button(ui, "messages-square", BAR_BUTTON, false, "Discord")
+    };
+    if discord.clicked() {
+        app.execute("help.discord");
+    }
 }
 
 /// Draw the right tool rail with page navigation, history, zoom, rotation and page-display controls for the
@@ -799,7 +894,11 @@ mod page_position_tests {
 
 #[cfg(test)]
 mod tab_widths {
-    use super::{MAC_CONTENT_LEFT, MAC_LIGHT, MAC_LIGHT_PITCH, MAC_LIGHTS_LEFT, MAC_TITLE_BAR, tab_cap};
+    use super::{
+        BarEnd, MAC_CONTENT_LEFT, MAC_LIGHT, MAC_LIGHT_PITCH, MAC_LIGHTS_LEFT, MAC_TITLE_BAR, MENUS_PREFERRED, SEARCH_MIN_WIDTH, SEARCH_WIDTH,
+        tab_cap,
+    };
+    use crate::menus::MIN_MENUS_WIDTH;
 
     /// Tabs that fit keep their own widths.
     #[test]
@@ -869,6 +968,35 @@ mod tab_widths {
         // The last tab dropped at the start: before the first tab.
         assert_eq!(drop_marker(&slots, 2, 0, 4.0), Some(-2.0));
         assert_eq!(drop_marker(&[], 0, 1, 4.0), None);
+    }
+
+    #[test]
+    fn the_mode_bar_end_gives_up_the_discord_label_then_search_width() {
+        let discord = 90.0;
+        let full = BarEnd { discord_label: true, search: Some(SEARCH_WIDTH) };
+        let compact = BarEnd { discord_label: false, search: Some(SEARCH_WIDTH) };
+        let room = |end: BarEnd| end.width(discord) + MENUS_PREFERRED;
+        assert_eq!(BarEnd::fit(2000.0, MENUS_PREFERRED, discord), full);
+        assert_eq!(BarEnd::fit(room(full), MENUS_PREFERRED, discord), full);
+        assert_eq!(BarEnd::fit(room(full) - 1.0, MENUS_PREFERRED, discord), compact);
+        assert_eq!(BarEnd::fit(room(compact), MENUS_PREFERRED, discord), compact);
+        // Below that the search box narrows, keeping the menus their preferred width…
+        let narrowed = BarEnd::fit(room(compact) - 50.0, MENUS_PREFERRED, discord);
+        assert_eq!(narrowed, BarEnd { discord_label: false, search: Some(SEARCH_WIDTH - 50.0) });
+        assert!((narrowed.width(discord) + MENUS_PREFERRED - (room(compact) - 50.0)).abs() < 0.01);
+        // …down to its narrowest, and then the menus fold to their minimum.
+        let narrowest = BarEnd { discord_label: false, search: Some(SEARCH_MIN_WIDTH) };
+        let menus_min = narrowest.width(discord) + MIN_MENUS_WIDTH;
+        for room in [room(narrowest), room(narrowest) - 100.0, menus_min] {
+            assert_eq!(BarEnd::fit(room, MENUS_PREFERRED, discord), narrowest, "room {room}");
+        }
+        // Then a search button; nothing narrower, whatever the room (even none, or NaN).
+        let button = BarEnd { discord_label: false, search: None };
+        for room in [menus_min - 1.0, 0.0, -100.0, f32::NAN] {
+            assert_eq!(BarEnd::fit(room, MENUS_PREFERRED, discord), button, "room {room}");
+        }
+        // With the native macOS menu bar there are no menus to keep room for.
+        assert_eq!(BarEnd::fit(full.width(discord), 0.0, discord), full);
     }
 
     #[test]
