@@ -50,6 +50,98 @@ pub(super) fn outline_matches(items: &[OutlineItem], query: &str) -> std::collec
     matches
 }
 
+/// Deeper than the panel ever lists bookmarks (33 levels), so the walk below is bounded even if a
+/// caller hands it a deeper tree.
+const MARK_MAX_DEPTH: usize = 64;
+
+/// The bookmark that holds `page`: of the entries whose destination page is at most `page`, the
+/// last in document order (so unsorted destinations still give one answer). Entries without a
+/// destination page are skipped. When a parent of that entry is collapsed (`open` says whether a
+/// bookmark's children are shown), the nearest shown ancestor is returned instead. `open` is
+/// asked only about that entry's ancestors, top-down.
+pub(super) fn current_bookmark(
+    items: &[OutlineItem],
+    page: usize,
+    mut open: impl FnMut(&[usize], &OutlineItem) -> bool,
+) -> Option<Vec<usize>> {
+    let mut best: Option<Vec<usize>> = None;
+    let mut path: Vec<usize> = Vec::new();
+    let mut stack = vec![items.iter().enumerate()];
+    while let Some(level) = stack.last_mut() {
+        let Some((i, item)) = level.next() else {
+            stack.pop();
+            continue;
+        };
+        path.truncate(stack.len().saturating_sub(1));
+        path.push(i);
+        if item.page.is_some_and(|p| p <= page) {
+            best = Some(path.clone());
+        }
+        if !item.children.is_empty() && stack.len() < MARK_MAX_DEPTH {
+            stack.push(item.children.iter().enumerate());
+        }
+    }
+    let mut best = best?;
+    let mut siblings = items;
+    for depth in 0..best.len().saturating_sub(1) {
+        let Some(item) = best.get(depth).and_then(|&i| siblings.get(i)) else { break };
+        if !open(best.get(..=depth).unwrap_or_default(), item) {
+            best.truncate(depth + 1);
+            break;
+        }
+        siblings = &item.children;
+    }
+    Some(best)
+}
+
+/// The row id holding a bookmark's open state; [`outline_item`] and [`marked_bookmark`] share it.
+fn row_id(ui: &egui::Ui, path: &[usize]) -> egui::Id {
+    ui.scope_id().with(("outline", path))
+}
+
+/// Whether a bookmark's children are shown this frame: Expand/Collapse all, else the reader's
+/// toggle, else the file's /Count. A search shows every match.
+fn row_open(ui: &egui::Ui, item: &OutlineItem, path: &[usize], expand: Option<usize>, searching: bool) -> bool {
+    if searching {
+        return true;
+    }
+    if let Some(levels) = expand {
+        return path.len().saturating_sub(1) < levels;
+    }
+    ui.data(|d| d.get_temp::<bool>(row_id(ui, path))).unwrap_or(item.open)
+}
+
+/// The row to mark as the reader's place in the panel's `ui` (see [`current_bookmark`]), and
+/// whether the panel should scroll it into view: only when the mark moved and the pointer is
+/// not over the panel, so a reader working in the panel is never scrolled away.
+pub(super) fn marked_bookmark(
+    ui: &egui::Ui,
+    items: &[OutlineItem],
+    current: usize,
+    expand: Option<usize>,
+    searching: bool,
+    matches: &std::collections::HashSet<Vec<usize>>,
+) -> (Option<Vec<usize>>, bool) {
+    let mut marked = current_bookmark(items, current, |path, item| row_open(ui, item, path, expand, searching));
+    if searching && let Some(path) = marked.as_mut() {
+        // A search hides what doesn't match; its matches keep their ancestors, so the longest
+        // shown prefix is the nearest shown row.
+        while !path.is_empty() && !matches.contains(path.as_slice()) {
+            path.pop();
+        }
+        if path.is_empty() {
+            marked = None;
+        }
+    }
+    let last_id = ui.scope_id().with("outline-marked");
+    let moved = ui.data(|d| d.get_temp::<Option<Vec<usize>>>(last_id)) != Some(marked.clone());
+    if moved {
+        ui.data_mut(|d| d.insert_temp(last_id, marked.clone()));
+    }
+    let scroll = moved && marked.is_some() && !ui.rect_contains_pointer(ui.clip_rect());
+    (marked, scroll)
+}
+
 pub(super) struct OutlineCtx<'a> {
     pub(super) nav: &'a mut Option<Nav>,
     pub(super) action: &'a mut Option<BmAction>,
@@ -60,6 +152,20 @@ pub(super) struct OutlineCtx<'a> {
     pub(super) expand: Option<usize>,
     pub(super) matches: &'a std::collections::HashSet<Vec<usize>>,
     pub(super) searching: bool,
+    /// The reader's place ([`marked_bookmark`]), and whether to scroll it into view.
+    pub(super) marked: Option<Vec<usize>>,
+    pub(super) scroll_to_marked: bool,
+}
+
+/// The left gutter of every bookmark row, where the reader's place is marked.
+const MARK_GUTTER: f32 = 10.0;
+
+/// A small right-pointing triangle in the gutter of the row at `rect`, at its first line. Painted
+/// as a shape so it never depends on a font having ▶.
+fn paint_mark(ui: &egui::Ui, rect: Rect, color: egui::Color32) {
+    let (x, y) = (rect.left() + 2.0, rect.top() + 14.0);
+    let points = vec![pos2(x, y - 4.5), pos2(x + 6.0, y), pos2(x, y + 4.5)];
+    ui.painter().add(egui::Shape::convex_polygon(points, color, egui::Stroke::NONE));
 }
 
 /// The destination page label gets its own right-aligned column in a bookmark row; drawing
@@ -120,15 +226,16 @@ pub(super) fn outline_item(
     }
     let depth = path.len() - 1;
     let indent = depth as f32 * 16.0;
-    let id = ui.scope_id().with(("outline", path));
-    if let Some(levels) = cx.expand {
-        ui.data_mut(|d| d.insert_temp(id, depth < levels));
-    }
+    let id = row_id(ui, path);
     // A bookmark opens as the file says at every level: a positive /Count is open, a negative
     // one (or none) closed (ISO 32000-2 §12.3.3, Table 151). The reader's own toggles and a
     // search override it.
-    let mut open = cx.searching || ui.data(|d| d.get_temp::<bool>(id)).unwrap_or(item.open);
-    let x_text = indent + 20.0;
+    let mut open = row_open(ui, item, path, cx.expand, cx.searching);
+    if let Some(levels) = cx.expand {
+        ui.data_mut(|d| d.insert_temp(id, depth < levels));
+    }
+    let is_marked = cx.marked.as_deref() == Some(path);
+    let x_text = MARK_GUTTER + indent + 20.0;
     if let Some((rpath, text)) = cx.rename.as_mut()
         && rpath.as_slice() == path
     {
@@ -170,15 +277,28 @@ pub(super) fn outline_item(
             })
         });
         let label_w = label_galley.as_ref().map_or(0.0, |g| g.size().x);
-        let wrap_w = (ui.available_width() - indent - 20.0 - label_w - 12.0).max(60.0);
+        let wrap_w = (ui.available_width() - MARK_GUTTER - indent - 20.0 - label_w - 12.0).max(60.0);
         let mut job = egui::text::LayoutJob::single_section(item.title.clone(), title_format(item, depth, t));
         job.wrap.max_width = wrap_w;
         let galley = ui.fonts_mut(|f| f.layout_job(job));
         let h = (galley.size().y + 12.0).max(28.0);
         let (rect, resp) = ui.allocate_exact_size(vec2(ui.available_width(), h), Sense::click());
-        resp.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, true, &item.title));
-        theme::Press::track(ui, &resp).wash(ui, rect, 6, false);
-        let x0 = rect.left() + indent;
+        resp.widget_info(|| {
+            let mut info = egui::WidgetInfo::labeled(egui::Role::Button, true, &item.title);
+            // Only the reader's place says it is selected, so the other rows read as before.
+            if is_marked {
+                info.selected = Some(true);
+            }
+            info
+        });
+        theme::Press::track(ui, &resp).wash(ui, rect, 6, is_marked);
+        if is_marked {
+            paint_mark(ui, rect, t.accent);
+            if cx.scroll_to_marked {
+                ui.scroll_to_rect(rect, None);
+            }
+        }
+        let x0 = rect.left() + MARK_GUTTER + indent;
         if !item.children.is_empty() {
             let tri = Rect::from_min_size(pos2(x0, rect.top() + 6.0), vec2(16.0, 16.0));
             icons::paint(ui, tri, if open { "chevron-down" } else { "chevron-right" }, 14.0, t.text_muted);
@@ -358,5 +478,115 @@ mod bookmark_filter {
         // A child match keeps its parent: [0] and [0, 0].
         assert_eq!(outline_matches(&outline, &fold("KIŞ")).len(), 2);
         assert!(outline_matches(&outline, &fold("izmir")).is_empty());
+    }
+}
+
+#[cfg(test)]
+mod current_mark {
+    use super::current_bookmark;
+    use pdfcraft_render::OutlineItem;
+
+    fn at(title: &str, page: Option<usize>, children: Vec<OutlineItem>) -> OutlineItem {
+        OutlineItem {
+            title: title.into(),
+            page,
+            view: pdfcraft_render::DestView::Top,
+            children,
+            open: true,
+            color: None,
+            italic: false,
+            bold: false,
+        }
+    }
+
+    fn all_open(_: &[usize], _: &OutlineItem) -> bool {
+        true
+    }
+
+    /// The user's file: "A2-paper3- Question.pdf" (page 1) holding papers at pages 85 and 97.
+    fn papers() -> Vec<OutlineItem> {
+        vec![
+            at("A2-paper3- Question.pdf", Some(0), vec![at("qp_31", Some(84), vec![]), at("qp_32", Some(96), vec![])]),
+            at("Answers", Some(200), vec![]),
+        ]
+    }
+
+    #[test]
+    fn an_empty_outline_marks_nothing() {
+        assert_eq!(current_bookmark(&[], 5, all_open), None);
+    }
+
+    #[test]
+    fn a_page_before_the_first_bookmark_marks_nothing() {
+        let outline = [at("One", Some(3), vec![]), at("Two", Some(5), vec![])];
+        assert_eq!(current_bookmark(&outline, 2, all_open), None);
+    }
+
+    #[test]
+    fn a_page_exactly_on_a_bookmark_marks_it() {
+        assert_eq!(current_bookmark(&papers(), 84, all_open), Some(vec![0, 0]));
+        assert_eq!(current_bookmark(&papers(), 200, all_open), Some(vec![1]));
+    }
+
+    #[test]
+    fn a_page_between_bookmarks_marks_the_one_before_it() {
+        // Page 87 of the user's file (index 86) is inside qp_31.
+        assert_eq!(current_bookmark(&papers(), 86, all_open), Some(vec![0, 0]));
+        assert_eq!(current_bookmark(&papers(), 50, all_open), Some(vec![0]));
+        assert_eq!(current_bookmark(&papers(), 10_000, all_open), Some(vec![1]));
+    }
+
+    #[test]
+    fn nested_children_are_marked_at_their_depth() {
+        let outline = [at("Part", Some(0), vec![at("Chapter", Some(2), vec![at("Section", Some(4), vec![])])])];
+        assert_eq!(current_bookmark(&outline, 5, all_open), Some(vec![0, 0, 0]));
+        assert_eq!(current_bookmark(&outline, 3, all_open), Some(vec![0, 0]));
+    }
+
+    #[test]
+    fn a_collapsed_parent_is_marked_in_place_of_its_hidden_child() {
+        let outline = [at("Part", Some(0), vec![at("Chapter", Some(2), vec![at("Section", Some(4), vec![])])])];
+        let mut asked = Vec::new();
+        let chapter_closed = |path: &[usize], _: &OutlineItem| {
+            asked.push(path.to_vec());
+            path != [0, 0]
+        };
+        assert_eq!(current_bookmark(&outline, 5, chapter_closed), Some(vec![0, 0]));
+        // Only the ancestors are asked, top-down.
+        assert_eq!(asked, vec![vec![0], vec![0, 0]]);
+        assert_eq!(current_bookmark(&outline, 5, |_, _| false), Some(vec![0]));
+    }
+
+    #[test]
+    fn unsorted_destinations_mark_the_last_in_document_order() {
+        let outline = [at("Late", Some(9), vec![]), at("Early", Some(1), vec![]), at("Middle", Some(5), vec![])];
+        assert_eq!(current_bookmark(&outline, 6, all_open), Some(vec![2]));
+        assert_eq!(current_bookmark(&outline, 3, all_open), Some(vec![1]));
+        assert_eq!(current_bookmark(&outline, 9, all_open), Some(vec![2]));
+    }
+
+    #[test]
+    fn bookmarks_without_a_page_are_skipped() {
+        let outline = [at("One", Some(0), vec![at("Nowhere", None, vec![])]), at("Also nowhere", None, vec![])];
+        assert_eq!(current_bookmark(&outline, 7, all_open), Some(vec![0]));
+        assert_eq!(current_bookmark(&[at("Nowhere", None, vec![])], 0, all_open), None);
+    }
+
+    /// A tree far deeper than the panel lists is walked to a bounded depth, without overflow.
+    #[test]
+    fn a_very_deep_tree_is_walked_to_a_bounded_depth() {
+        let mut item = at("leaf", Some(0), vec![]);
+        for _ in 0..1_000 {
+            item = at("level", None, vec![item]);
+        }
+        let outline = [item];
+        assert_eq!(current_bookmark(&outline, 0, all_open), None);
+        let mut item = at("leaf", Some(0), vec![]);
+        for _ in 0..100 {
+            item = at("level", Some(0), vec![item]);
+        }
+        let marked = current_bookmark(&[item], 0, all_open).unwrap_or_default();
+        assert_eq!(marked.len(), super::MARK_MAX_DEPTH);
+        // Dropping the item tree recursively is the test's own cost, not the walk's.
     }
 }

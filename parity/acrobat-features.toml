@@ -1307,11 +1307,11 @@ title = "Highlight the current bookmark"
 area = "B"
 tier = "P2"
 milestone = "M4"
-status = "planned"
+status = "shipped"
 commands = []
 tools = []
-evidence = []
-notes = ""
+evidence = ["crates/ui-egui/src/panels/bookmarks.rs::current_mark::a_page_between_bookmarks_marks_the_one_before_it", "crates/ui-egui/src/panels/bookmarks.rs::current_mark::a_collapsed_parent_is_marked_in_place_of_its_hidden_child", "crates/ui-egui/src/panels/bookmarks.rs::current_mark::unsorted_destinations_mark_the_last_in_document_order", "crates/ui-egui/tests/it/view.rs::the_bookmarks_panel_marks_the_bookmark_holding_the_current_page"]
+notes = "The Bookmarks panel marks the reader's place with a triangle in the row's gutter and the selected wash: the last bookmark in document order whose destination page is at or before the current page, or its nearest shown ancestor when a parent is collapsed (or a search hides it). It follows scrolling and navigation, and scrolls the row into view when the mark moves unless the pointer is over the panel. Page granularity only: a bookmark's position on the page is not compared with the scroll position, and the panel's list limits (10,000 bookmarks, 33 levels) apply. No automation tool reports the current bookmark."
 
 [[feature]]
 id = "view.attachments-panel"

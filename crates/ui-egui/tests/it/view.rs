@@ -1264,6 +1264,39 @@ fn bookmark_destinations_scroll_to_their_position() {
     assert!(d.y.abs() < 2.0, "y 300 on page 3 is at the top of the window: {d:?}");
 }
 
+/// A nested outline: "Part" (page 1, open) holding "Chapter" (page 3), then "Appendix" (page 4).
+const NESTED: &[u8] = b"%PDF-1.7
+1 0 obj << /Type /Catalog /Pages 2 0 R /Outlines 10 0 R >> endobj
+2 0 obj << /Type /Pages /Kids [3 0 R 4 0 R 5 0 R 6 0 R] /Count 4 /MediaBox [0 0 300 400] >> endobj
+3 0 obj << /Type /Page /Parent 2 0 R >> endobj
+4 0 obj << /Type /Page /Parent 2 0 R >> endobj
+5 0 obj << /Type /Page /Parent 2 0 R >> endobj
+6 0 obj << /Type /Page /Parent 2 0 R >> endobj
+10 0 obj << /Type /Outlines /First 11 0 R /Last 13 0 R /Count 3 >> endobj
+11 0 obj << /Title (Part) /Parent 10 0 R /Next 13 0 R /First 12 0 R /Last 12 0 R /Count 1 /Dest [3 0 R /Fit] >> endobj
+12 0 obj << /Title (Chapter) /Parent 11 0 R /Dest [5 0 R /Fit] >> endobj
+13 0 obj << /Title (Appendix) /Parent 10 0 R /Prev 11 0 R /Dest [6 0 R /Fit] >> endobj
+trailer << /Root 1 0 R >>
+%%EOF";
+
+/// The Bookmarks panel marks the bookmark holding the current page, and follows navigation.
+#[test]
+fn the_bookmarks_panel_marks_the_bookmark_holding_the_current_page() {
+    let mut h = bookmarks_harness("nested.pdf", NESTED);
+    let marked = |h: &Harness<'static, PdfCraftApp>| {
+        ["Part", "Chapter", "Appendix"]
+            .into_iter()
+            .filter(|title| h.get_by_label(title).accesskit_node().is_selected() == Some(true))
+            .collect::<Vec<_>>()
+    };
+    assert_eq!(marked(&h), ["Part"], "page 1 is in Part");
+    for (page, expected) in [("2", "Part"), ("3", "Chapter"), ("4", "Appendix"), ("3", "Chapter")] {
+        h.state_mut().set_option("page", page).unwrap();
+        h.run_steps(4);
+        assert_eq!(marked(&h), [expected], "page {page}");
+    }
+}
+
 #[test]
 fn link_destinations_scroll_to_their_position() {
     use pdfcraft_ui_egui::canvas::Fit;

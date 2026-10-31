@@ -1,4 +1,4 @@
-use super::bookmarks::{BmAction, OutlineCtx, outline_item, outline_matches};
+use super::bookmarks::{BmAction, OutlineCtx, marked_bookmark, outline_item, outline_matches};
 use super::pages::{page_tools, pages, thumbnail_size};
 use super::{
     Align, Align2, Color32, DocInfo, FieldKind, Layout, Nav, PdfCraftApp, Rect, RightPanel, Sense, Stroke, Tokens, human_size, icons, theme, vec2,
@@ -190,6 +190,8 @@ pub fn right_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                         if info.outline.is_empty() {
                             empty(ui, &t, "bookmark", "This document has no bookmarks.");
                         }
+                        let searching = !bookmark_query.is_empty();
+                        let (marked, scroll_to_marked) = marked_bookmark(ui, &info.outline, view.current, bm_expand, searching, &bookmark_matches);
                         let mut ctx = OutlineCtx {
                             nav: &mut nav,
                             action: &mut bm_action,
@@ -198,7 +200,9 @@ pub fn right_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                             current: view.current,
                             expand: bm_expand,
                             matches: &bookmark_matches,
-                            searching: !bookmark_query.is_empty(),
+                            searching,
+                            marked,
+                            scroll_to_marked,
                         };
                         if ctx.searching && bookmark_matches.is_empty() && !info.outline.is_empty() {
                             ui.label(tl!("No matches."));
