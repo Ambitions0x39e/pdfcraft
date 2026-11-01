@@ -641,11 +641,11 @@ fn tabs_shrink_to_fit_then_arrows_step_through_them_and_open_stays_in_sight() {
         }
     });
     // The strip ends at the window (1400) less its margin; Discord and the other app buttons
-    // are in the mode bar below it.
+    // are in the mode bar above it.
     let open = h.get_by_label("Open").rect();
     assert!(open.right() <= STRIP_RIGHT, "Open {open:?} must not run off the strip");
     let discord = h.get_by_label("Discord").rect();
-    assert!(discord.top() >= open.bottom() - 0.5, "Discord {discord:?} sits in the mode bar, below the tabs");
+    assert!(discord.bottom() <= open.top() + 0.5, "Discord {discord:?} sits in the mode bar, above the tabs");
     let mut previous_right = f32::MIN;
     for i in 0..5 {
         let tab = h.get_by_label(&name(i)).rect();
@@ -679,6 +679,124 @@ fn tabs_shrink_to_fit_then_arrows_step_through_them_and_open_stays_in_sight() {
     assert!(open.left() > 0.0 && open.right() <= STRIP_RIGHT, "Open {open:?} stays in sight at the strip's end");
 }
 
+/// Every viewport command the last frame sent.
+fn viewport_commands(h: &Harness<'static, PdfCraftApp>) -> Vec<egui::ViewportCommand> {
+    h.output().viewport_output.values().flat_map(|v| v.commands.iter().cloned()).collect()
+}
+
+/// The mode bar's height: the top row on Windows and Linux.
+const MODE_BAR: f32 = 48.0;
+
+/// The window's Close button: the one in the top row (a panel has a Close of its own).
+fn top_row_close(h: &Harness<'static, PdfCraftApp>) -> egui::Rect {
+    let rects: Vec<egui::Rect> = h.query_all_by_label("Close").map(|n| n.rect()).filter(|r| r.bottom() <= MODE_BAR).collect();
+    assert_eq!(rects.len(), 1, "one Close in the top row: {rects:?}");
+    rects[0]
+}
+
+/// Double-click at `at` and collect the viewport commands of the frames that follow.
+fn double_click_commands(h: &mut Harness<'static, PdfCraftApp>, at: egui::Pos2) -> Vec<egui::ViewportCommand> {
+    h.hover_at(at);
+    h.run_steps(1);
+    let mut sent = Vec::new();
+    for _ in 0..2 {
+        for pressed in [true, false] {
+            h.event(egui::Event::PointerButton { pos: at, button: egui::PointerButton::Primary, pressed, modifiers: egui::Modifiers::NONE });
+        }
+        h.step();
+        sent.extend(viewport_commands(h));
+    }
+    for _ in 0..2 {
+        h.step();
+        sent.extend(viewport_commands(h));
+    }
+    sent
+}
+
+/// The menus' row is the window's top row on Windows and Linux (and on macOS without the
+/// integrated title bar), with the document tabs below it, and it took over the title bar's
+/// duties: its empty space maximises the window on a double-click, and the window buttons the
+/// app draws sit at its ends. The tab strip below is a plain row. Focus and AccessKit order
+/// follow the rows top to bottom.
+#[test]
+fn the_menus_row_is_above_the_tabs_and_is_the_title_bar() {
+    use egui::accesskit::Role;
+    use pdfcraft_ui_egui::window_controls::Layout;
+    // 60 frames a second, so two clicks a frame apart are a double-click.
+    let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).with_step_dt(1.0 / 60.0).build_eframe(|_cc| {
+        let mut app = PdfCraftApp::new();
+        app.set_option("language", "en").unwrap();
+        app.window_controls = Some(Layout::default());
+        app.open_bytes("rows.pdf", None, FIXTURE.to_vec()).unwrap();
+        app
+    });
+    h.run_steps(8);
+    if let Ok(dir) = std::env::var("PDFCRAFT_TAB_SHOTS") {
+        let _gpu = crate::gpu();
+        crate::support::settle(&mut h);
+        h.render().unwrap().save(format!("{dir}/top-rows.png")).unwrap();
+    }
+    let file = h.get_by(|n| n.role() == Role::MenuItem && n.label().as_deref() == Some("File")).rect();
+    let search = h.get_by_label("Find tools and commands").rect();
+    let home = h.get_by_label("Home").rect();
+    let tab = h.get_by(|n| n.role() == Role::Tab && n.label().as_deref() == Some("rows.pdf")).rect();
+    let open = h.get_by_label("Open").rect();
+    assert!(file.top() >= 0.0 && file.bottom() <= home.top(), "File {file:?} is above Home {home:?}");
+    for (label, r) in [("search", search), ("Home", home), ("the tab", tab), ("Open", open)] {
+        assert!(r.top() >= 0.0 && r.bottom() <= MODE_BAR + 38.0 + 0.5, "{label} {r:?} is in the two top rows");
+    }
+    assert!(search.bottom() <= tab.top() + 0.5, "search {search:?} is above the tab {tab:?}");
+    // The window buttons are on the menus' row, at its right end, after Preferences.
+    let preferences = h.get_by_label("Preferences").rect();
+    let (minimize, close) = (h.get_by_label("Minimize").rect(), top_row_close(&h));
+    for (label, r) in [("Minimize", minimize), ("Close", close)] {
+        assert!(r.top() >= 0.0 && r.bottom() <= MODE_BAR, "{label} {r:?} is on the menus' row {file:?}");
+        assert!(r.left() >= preferences.right(), "{label} {r:?} follows Preferences {preferences:?}");
+        assert!(r.right() <= 1400.0, "{label} {r:?} is in the window");
+    }
+    assert!(close.left() >= minimize.right(), "the buttons read in the desktop's order");
+    // Focus order runs down the window: the menus' row, its window buttons last, then the tabs.
+    let order: Vec<String> = {
+        let mut labels = Vec::new();
+        let mut stack = vec![h.root()];
+        while let Some(node) = stack.pop() {
+            if let Some(label) = node.accesskit_node().label() {
+                labels.push(label);
+            }
+            let children: Vec<_> = node.children().collect();
+            stack.extend(children.into_iter().rev());
+        }
+        labels
+    };
+    let at = |label: &str| order.iter().position(|l| l == label).unwrap_or_else(|| panic!("{label} in {order:?}"));
+    assert!(at("File") < at("Find tools and commands") && at("Preferences") < at("Minimize") && at("Close") < at("Home"));
+    assert!(at("Home") < at("rows.pdf") && at("rows.pdf") < at("Open"));
+    // A double-click on the menus' row's empty space, between the mode tabs and search,
+    // maximises the window; the same on the tab strip's empty space does not.
+    let sign = h.get_by_label("E-Sign").rect();
+    let gap = egui::pos2((sign.right() + search.left()) / 2.0, search.center().y);
+    assert!(gap.x > sign.right() + 4.0 && gap.x < search.left() - 4.0, "{sign:?} and {search:?} leave a gap");
+    let sent = double_click_commands(&mut h, gap);
+    assert!(sent.iter().any(|c| matches!(c, egui::ViewportCommand::Maximized(true))), "the menus' row maximises: {sent:?}");
+    let strip_gap = egui::pos2((open.right() + 1400.0) / 2.0, open.center().y);
+    let sent = double_click_commands(&mut h, strip_gap);
+    assert!(!sent.iter().any(|c| matches!(c, egui::ViewportCommand::Maximized(_))), "the tab strip is a plain row: {sent:?}");
+}
+
+/// A desktop with its window buttons on the left (GNOME's `close:` layout) gets them at the
+/// menus' row's left end, before the menus.
+#[test]
+fn left_window_buttons_open_the_menus_row() {
+    use egui::accesskit::Role;
+    use pdfcraft_ui_egui::window_controls::Layout;
+    let h = harness(|app| app.window_controls = Some(Layout::parse("close,minimize:")));
+    let file = h.get_by(|n| n.role() == Role::MenuItem && n.label().as_deref() == Some("File")).rect();
+    let (close, minimize) = (top_row_close(&h), h.get_by_label("Minimize").rect());
+    assert!(close.top() >= 0.0 && close.bottom() <= MODE_BAR, "Close {close:?} is on the menus' row {file:?}");
+    assert!(close.left() >= 0.0 && close.right() <= minimize.left() && minimize.right() <= file.left(), "{close:?} {minimize:?} before {file:?}");
+    assert!(h.query_by_label("Maximize").is_none(), "only the buttons the layout names");
+}
+
 /// macOS (#789): with the integrated title bar, the strip is the 28 pt band AppKit centres the
 /// traffic lights in, and everything in it fits that band and clears the lights.
 #[cfg(target_os = "macos")]
@@ -697,6 +815,10 @@ fn the_integrated_title_bar_is_the_traffic_light_band() {
     // Content starts after the three lights (the last one ends 62 pt in) with a gap.
     let home = h.get_by_label("Home").rect();
     assert!(home.left() >= 62.0 + 4.0, "Home {home:?} clears the traffic lights");
+    // The traffic lights need the band at the window's top, so here the tab strip stays above
+    // the menus' row.
+    let search = h.get_by_label("Find tools and commands").rect();
+    assert!(search.top() >= home.bottom() - 0.5, "search {search:?} is below the title bar");
 }
 
 #[test]
@@ -1229,7 +1351,7 @@ fn preferences_selects_default_workspace_for_next_open() {
     assert_eq!(h.state().mode, Mode::Read);
 }
 
-/// GNOME on Wayland: the tab strip carries the window buttons until Preferences ▸ Use system title
+/// GNOME on Wayland: the top row carries the window buttons until Preferences ▸ Use system title
 /// bar gives the window back its frame, at once and without a restart (#553, #1001). The choice
 /// is saved; desktops that draw the frame themselves don't offer it.
 #[test]
@@ -1258,7 +1380,7 @@ fn use_system_title_bar_swaps_the_header_bar_for_the_window_frame() {
     }
     assert!(h.state().system_title_bar);
     assert_eq!(asked, Some(true), "the window gets its frame back");
-    assert!(h.query_by_label("Minimize").is_none(), "and the tab strip loses its buttons");
+    assert!(h.query_by_label("Minimize").is_none(), "and the top row loses its buttons");
     let saved = h.state().persist();
     assert!(saved.contains(r#""system_title_bar":true"#), "{saved}");
     let mut restored = PdfCraftApp::new();
@@ -1871,9 +1993,9 @@ fn full_screen_neither_is_remembered_nor_hides_the_last_view() {
     assert_eq!((view.fit, view.zoom, view.layout, view.continuous), (Fit::None, 0.5, PageLayout::TwoUp, false), "the remembered view");
 }
 
-/// One row under the tabs (#one-row chrome): the menus, the mode tabs, search, the document's
+/// One row above the tabs (#one-row chrome): the menus, the mode tabs, search, the document's
 /// buttons and the app's (Discord, help, theme, preferences) share the mode bar, and the tab
-/// strip holds only home, the tabs and Open. A narrower window drops the Discord label and then
+/// strip below it holds only home, the tabs and Open. A narrower window drops the Discord label and then
 /// shrinks the search before anything runs into the mode tabs.
 #[test]
 fn the_app_buttons_share_the_mode_bar_row_at_every_width() {
@@ -1889,7 +2011,7 @@ fn the_app_buttons_share_the_mode_bar_row_at_every_width() {
         let search = h.get_by_label("Find tools and commands").rect();
         let sign = h.get_by_label("E-Sign").rect();
         let print = h.get_by_label_contains("Print (").rect();
-        assert!(search.top() >= open.bottom() - 0.5, "{width}: search {search:?} is below the tab strip");
+        assert!(search.bottom() <= open.top() + 0.5, "{width}: search {search:?} is above the tab strip");
         assert!(search.left() >= sign.right() - 0.5, "{width}: search {search:?} clears the mode tabs {sign:?}");
         let mut left = print.right();
         for label in ["Discord", "Keyboard shortcuts", "Display theme:", "Preferences"] {
