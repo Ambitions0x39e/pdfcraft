@@ -54,12 +54,21 @@ pub(super) fn outline_matches(items: &[OutlineItem], query: &str) -> std::collec
 /// caller hands it a deeper tree.
 const MARK_MAX_DEPTH: usize = 64;
 
-/// The bookmark that holds `page`: of the entries whose destination page is at most `page`, the
+/// The bookmark that holds `page` (the panel's [`marked_bookmark`] in one call, for the tests):
+/// of the entries whose destination page is at most `page`, the
 /// last in document order (so unsorted destinations still give one answer). Entries without a
 /// destination page are skipped. When a parent of that entry is collapsed (`open` says whether a
 /// bookmark's children are shown), the nearest shown ancestor is returned instead. `open` is
 /// asked only about that entry's ancestors, top-down.
-pub(super) fn current_bookmark(items: &[OutlineItem], page: usize, mut open: impl FnMut(&[usize], &OutlineItem) -> bool) -> Option<Vec<usize>> {
+#[cfg(test)]
+pub(super) fn current_bookmark(items: &[OutlineItem], page: usize, open: impl FnMut(&[usize], &OutlineItem) -> bool) -> Option<Vec<usize>> {
+    Some(nearest_shown(items, holding_page(items, page)?, open))
+}
+
+/// The first half of the reader's place: the last entry in document order whose destination page
+/// is at most `page`, whatever is collapsed. It visits the whole outline, so the panel caches it
+/// ([`marked_bookmark`]).
+fn holding_page(items: &[OutlineItem], page: usize) -> Option<Vec<usize>> {
     let mut best: Option<Vec<usize>> = None;
     let mut path: Vec<usize> = Vec::new();
     let mut stack = vec![items.iter().enumerate()];
@@ -77,7 +86,12 @@ pub(super) fn current_bookmark(items: &[OutlineItem], page: usize, mut open: imp
             stack.push(item.children.iter().enumerate());
         }
     }
-    let mut best = best?;
+    best
+}
+
+/// `best`, or its nearest ancestor shown when one above it is collapsed (`open`, asked about the
+/// ancestors only, top-down). Walks only `best`'s depth, so it runs every frame.
+fn nearest_shown(items: &[OutlineItem], mut best: Vec<usize>, mut open: impl FnMut(&[usize], &OutlineItem) -> bool) -> Vec<usize> {
     let mut siblings = items;
     for depth in 0..best.len().saturating_sub(1) {
         let Some(item) = best.get(depth).and_then(|&i| siblings.get(i)) else { break };
@@ -87,7 +101,7 @@ pub(super) fn current_bookmark(items: &[OutlineItem], page: usize, mut open: imp
         }
         siblings = &item.children;
     }
-    Some(best)
+    best
 }
 
 /// The row id holding a bookmark's open state; [`outline_item`] and [`marked_bookmark`] share it.
@@ -107,18 +121,44 @@ fn row_open(ui: &egui::Ui, item: &OutlineItem, path: &[usize], expand: Option<us
     ui.data(|d| d.get_temp::<bool>(row_id(ui, path))).unwrap_or(item.open)
 }
 
-/// The row to mark as the reader's place in the panel's `ui` (see [`current_bookmark`]), and
+/// What [`holding_page`] found for one version of the document's bytes and one page. The bytes
+/// are held weakly: the cache never keeps a closed or edited document's data alive, and while
+/// the weak pointer lives its address can't be reused by a newer version.
+#[derive(Clone)]
+struct HoldingCache {
+    bytes: std::sync::Weak<Vec<u8>>,
+    page: usize,
+    found: Option<Vec<usize>>,
+}
+
+/// The row to mark as the reader's place in the panel's `ui` ([`holding_page`], then
+/// [`nearest_shown`]), and
 /// whether the panel should scroll it into view: only when the mark moved and the pointer is
-/// not over the panel, so a reader working in the panel is never scrolled away.
+/// not over the panel, so a reader working in the panel is never scrolled away. `bytes` is the
+/// document version `items` was read from: every edit (bookmark edits included) makes a new
+/// one, so the whole-outline walk runs only when it or the page changes, and the per-frame
+/// part (collapsed ancestors, a search's hidden rows) walks one path.
 pub(super) fn marked_bookmark(
     ui: &egui::Ui,
     items: &[OutlineItem],
+    bytes: &std::sync::Arc<Vec<u8>>,
     current: usize,
     expand: Option<usize>,
     searching: bool,
     matches: &std::collections::HashSet<Vec<usize>>,
 ) -> (Option<Vec<usize>>, bool) {
-    let mut marked = current_bookmark(items, current, |path, item| row_open(ui, item, path, expand, searching));
+    let cache_id = ui.scope_id().with("outline-holding");
+    let cached = ui.data(|d| d.get_temp::<HoldingCache>(cache_id));
+    let found = match cached {
+        Some(c) if c.page == current && std::ptr::eq(c.bytes.as_ptr(), std::sync::Arc::as_ptr(bytes)) => c.found,
+        _ => {
+            let found = holding_page(items, current);
+            let entry = HoldingCache { bytes: std::sync::Arc::downgrade(bytes), page: current, found: found.clone() };
+            ui.data_mut(|d| d.insert_temp(cache_id, entry));
+            found
+        }
+    };
+    let mut marked = found.map(|best| nearest_shown(items, best, |path, item| row_open(ui, item, path, expand, searching)));
     if searching && let Some(path) = marked.as_mut() {
         // A search hides what doesn't match; its matches keep their ancestors, so the longest
         // shown prefix is the nearest shown row.
@@ -298,7 +338,10 @@ pub(super) fn outline_item(
         if !item.children.is_empty() {
             let tri = Rect::from_min_size(pos2(x0, rect.top() + 6.0), vec2(16.0, 16.0));
             icons::paint(ui, tri, if open { "chevron-down" } else { "chevron-right" }, 14.0, t.text_muted);
-            if !cx.searching && ui.interact(tri, id.with("tri"), Sense::click()).clicked() {
+            // The click target reaches back over the mark's gutter to where the row's indent
+            // starts, so the triangle still opens from the spot it took before the gutter.
+            let hit = Rect::from_min_max(pos2(x0 - MARK_GUTTER, tri.top()), tri.max);
+            if !cx.searching && ui.interact(hit, id.with("tri"), Sense::click()).clicked() {
                 open = !open;
                 ui.data_mut(|d| d.insert_temp(id, open));
             }
