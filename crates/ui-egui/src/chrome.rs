@@ -1,8 +1,10 @@
-//! Window chrome: tab strip (with the integrated macOS title bar), mode bar, right rail.
+//! Window chrome: the two rows above the document (mode bar and tab strip), right rail.
 //!
-//! The tab strip holds home, the document tabs, Open and the window controls; everything else
-//! that sits above the document (menus, mode tabs, search, the document and app buttons) shares
-//! the one mode-bar row below it.
+//! The mode bar holds the menus, mode tabs, search and the document and app buttons; the tab
+//! strip holds home, the document tabs and Open. The top row of the two doubles as the title bar
+//! (drag, double-click, and the window controls when the app draws the frame): the mode bar,
+//! except with the integrated macOS title bar, where the tab strip is the 28 pt band the traffic
+//! lights sit in and stays on top ([`top_rows`]).
 
 use craft_ui::panes::{Edge, Rail, RailItem, RailRequest};
 use egui::{Align, Color32, CornerRadius, Layout, Rect, Sense, Stroke, vec2};
@@ -33,35 +35,71 @@ const STRIP_BUTTON: f32 = 28.0;
 /// The room kept free at the strip's right end, before any window controls.
 const STRIP_END: f32 = 12.0;
 
-/// Draw the window's tab strip: home and open controls, shrinkable and scrollable document tabs with drag
-/// reordering, and platform window controls. It doubles as the title bar (drag, double-click).
-pub fn tab_strip(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
+/// Whether the tab strip is the top row: only with the integrated macOS title bar, whose
+/// traffic lights AppKit centres in a 28 pt band at the window's top that the strip fills.
+/// Everywhere else the mode bar is on top and the tab strip sits below it.
+pub fn tab_strip_on_top(app: &PdfCraftApp) -> bool {
+    cfg!(target_os = "macos") && app.integrated_titlebar
+}
+
+/// Draw the two rows above the document, top row first (`Panel::top` stacks them in the order
+/// they are shown). The top row is the title bar. The order is also the keyboard focus and
+/// AccessKit order, so focus moves down the window as it reads.
+pub fn top_rows(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
+    if tab_strip_on_top(app) {
+        tab_strip(app, ui, true);
+        mode_bar(app, ui, false);
+    } else {
+        mode_bar(app, ui, true);
+        tab_strip(app, ui, false);
+    }
+}
+
+/// Make the whole of the current panel a title bar: a drag on its empty space moves the window
+/// and a double-click maximises or restores it. Called before the panel's widgets, which sit
+/// above it and keep their own clicks.
+fn title_bar_drag(ui: &egui::Ui) {
+    let drag = ui.interact(ui.max_rect(), ui.scope_id().with("titledrag"), Sense::click_and_drag());
+    if drag.drag_started() {
+        window_controls::desktop_grab(ui.ctx(), egui::ViewportCommand::StartDrag);
+    }
+    if drag.double_clicked() {
+        let max = ui.ctx().input(|i| i.viewport().maximized.unwrap_or(false));
+        ui.ctx().send_viewport_cmd(egui::ViewportCommand::Maximized(!max));
+    }
+}
+
+/// The window buttons the title bar draws at its ends: the desktop's layout when the app draws
+/// the window frame (GNOME on Wayland, Windows without the system title bar), none in full screen
+/// or under a desktop's own frame.
+fn title_bar_controls(ui: &egui::Ui, app: &PdfCraftApp) -> window_controls::Layout {
+    let fullscreen = ui.ctx().input(|i| i.viewport().fullscreen.unwrap_or(false));
+    app.window_controls
+        .clone()
+        .filter(|_| app.draws_window_frame() && !fullscreen)
+        .unwrap_or_else(|| window_controls::Layout { left: Vec::new(), right: Vec::new() })
+}
+
+/// Draw the window's tab strip: home and open controls, and shrinkable, scrollable document tabs
+/// with drag reordering. As the top row (`title`) it is also the title bar, with the window
+/// controls at its ends; below the mode bar it is a plain row.
+fn tab_strip(app: &mut PdfCraftApp, ui: &mut egui::Ui, title: bool) {
     let t = Tokens::get(ui.ctx());
     // macOS: the strip is the 28 pt title bar, so the traffic lights are centred in it; tabs and
     // buttons shrink to keep a margin above and below.
-    let mac = cfg!(target_os = "macos") && app.integrated_titlebar;
+    let mac = title && cfg!(target_os = "macos") && app.integrated_titlebar;
     let left = if mac { MAC_CONTENT_LEFT as i8 } else { 8 };
     let (tab_h, button) = if mac { (MAC_TITLE_BAR - 2.0, 24.0) } else { (TAB_HEIGHT, STRIP_BUTTON) };
     egui::Panel::top("tab_strip")
         .exact_size(if mac { MAC_TITLE_BAR } else { TAB_STRIP })
         .frame(egui::Frame::NONE.fill(t.titlebar).inner_margin(egui::Margin { left, right: 10, top: 0, bottom: 0 }))
         .show(ui, |ui| {
-            let full = ui.max_rect();
-            let drag = ui.interact(full, ui.scope_id().with("titledrag"), Sense::click_and_drag());
-            if drag.drag_started() {
-                window_controls::desktop_grab(ui.ctx(), egui::ViewportCommand::StartDrag);
-            }
-            if drag.double_clicked() {
-                let max = ui.ctx().input(|i| i.viewport().maximized.unwrap_or(false));
-                ui.ctx().send_viewport_cmd(egui::ViewportCommand::Maximized(!max));
-            }
-            // GNOME on Wayland: the strip is the header bar, with the window buttons at its ends.
-            let fullscreen = ui.ctx().input(|i| i.viewport().fullscreen.unwrap_or(false));
-            let controls = app
-                .window_controls
-                .clone()
-                .filter(|_| app.draws_window_frame() && !fullscreen)
-                .unwrap_or_else(|| window_controls::Layout { left: Vec::new(), right: Vec::new() });
+            let controls = if title {
+                title_bar_drag(ui);
+                title_bar_controls(ui, app)
+            } else {
+                window_controls::Layout { left: Vec::new(), right: Vec::new() }
+            };
             ui.horizontal_centered(|ui| {
                 ui.spacing_mut().item_spacing.x = 4.0;
                 if !controls.left.is_empty() {
@@ -411,7 +449,7 @@ fn tab(ui: &mut egui::Ui, spec: TabSpec<'_>, close: &mut Option<usize>) -> egui:
     let label_galley = crate::bidi::layout_ltr(ui, label.clone(), font.clone(), label_color);
     let text_w = label_galley.size().x;
     let width = cap.map_or(text_w + TAB_CHROME, |cap| (text_w + TAB_CHROME).min(cap));
-    // Full strip height so the active tab sits on the mode bar instead of floating in the title bar.
+    // Full strip height so the active tab sits on the row's bottom edge instead of floating in it.
     let height = ui.available_height().max(height);
     let (rect, _) = ui.allocate_exact_size(vec2(width, height), Sense::hover());
     let a11y = if dirty { format!("{name} (edited)") } else { name.to_string() };
@@ -514,13 +552,31 @@ impl BarEnd {
 
 /// Draw the mode bar: the menus, the mode tabs, and at the right end the command search, the
 /// document's buttons (properties, save, print) and the app's (Discord, help, theme, preferences).
-pub fn mode_bar(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
+/// As the top row (`title`) it is also the title bar: its empty space moves and maximises the
+/// window, and the window controls sit at its ends when the app draws the frame.
+fn mode_bar(app: &mut PdfCraftApp, ui: &mut egui::Ui, title: bool) {
     let t = Tokens::get(ui.ctx());
     egui::Panel::top("mode_bar")
         .exact_size(48.0)
         .frame(egui::Frame::NONE.fill(t.chrome).inner_margin(egui::Margin::symmetric(10, 0)).stroke(Stroke::new(1.0, t.divider)))
         .show(ui, |ui| {
+            let controls = if title {
+                title_bar_drag(ui);
+                title_bar_controls(ui, app)
+            } else {
+                window_controls::Layout { left: Vec::new(), right: Vec::new() }
+            };
+            // Where the right-hand window buttons go, kept free while the row lays out right to
+            // left and filled last, so they come last in focus order as they are last on screen.
+            let mut right_controls = None;
             ui.horizontal_centered(|ui| {
+                if !controls.left.is_empty() {
+                    ui.scope(|ui| {
+                        ui.spacing_mut().item_spacing.x = 0.0;
+                        window_controls::buttons(ui, &controls.left);
+                    });
+                    ui.add_space(window_controls::SIDE_GAP);
+                }
                 ui.spacing_mut().item_spacing.x = 2.0;
                 // Acrobat's mode bar has no Read tab: reading is what the viewer does with no tool
                 // in use. Read mode (the panes hidden) stays a View command and a default workspace.
@@ -531,10 +587,11 @@ pub fn mode_bar(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                 let discord = ui.fonts_mut(|f| f.layout_no_wrap("Discord".into(), theme::medium(13.0), t.text).size().x) + 38.0;
                 let menus = app.native_menu.is_none();
                 let (preferred, divider) = if menus { (MENUS_PREFERRED, MENUS_DIVIDER + gap) } else { (0.0, 0.0) };
-                let end = BarEnd::fit(ui.available_width() - tabs - divider, preferred, discord);
+                let reserved = window_controls::width(&controls.right);
+                let end = BarEnd::fit(ui.available_width() - tabs - divider - reserved, preferred, discord);
                 // The menus, unless the native macOS menu bar has them.
                 if menus {
-                    app.menu_bar_ui(ui, tabs + divider + end.width(discord));
+                    app.menu_bar_ui(ui, tabs + divider + end.width(discord) + reserved);
                     ui.add_space(MENUS_DIVIDER / 2.0 - gap);
                     ui.painter().vline(ui.cursor().left(), ui.max_rect().y_range().shrink(12.0), Stroke::new(1.0, t.divider));
                     ui.add_space(MENUS_DIVIDER / 2.0);
@@ -546,6 +603,11 @@ pub fn mode_bar(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                 }
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                     ui.spacing_mut().item_spacing.x = BAR_GAP;
+                    if !controls.right.is_empty() {
+                        let size = vec2(reserved - window_controls::SIDE_GAP, window_controls::BUTTON);
+                        right_controls = Some(ui.allocate_space(size).1);
+                        ui.add_space(window_controls::SIDE_GAP - BAR_GAP);
+                    }
                     app_buttons(app, ui, end.discord_label);
                     ui.add_space((CLUSTER_DIVIDER - BAR_GAP) / 2.0);
                     ui.painter().vline(ui.cursor().right(), ui.max_rect().y_range().shrink(12.0), Stroke::new(1.0, t.divider));
@@ -562,6 +624,13 @@ pub fn mode_bar(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                     }
                 });
             });
+            if let Some(rect) = right_controls {
+                // Laid out left to right, so they read in the desktop's order.
+                ui.scope_builder(egui::UiBuilder::new().max_rect(rect).layout(Layout::left_to_right(Align::Center)), |ui| {
+                    ui.spacing_mut().item_spacing.x = 0.0;
+                    window_controls::buttons(ui, &controls.right);
+                });
+            }
         });
 }
 

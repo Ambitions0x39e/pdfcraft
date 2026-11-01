@@ -191,7 +191,8 @@ pub fn right_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                             empty(ui, &t, "bookmark", "This document has no bookmarks.");
                         }
                         let searching = !bookmark_query.is_empty();
-                        let (marked, scroll_to_marked) = marked_bookmark(ui, &info.outline, view.current, bm_expand, searching, &bookmark_matches);
+                        let (marked, scroll_to_marked) =
+                            marked_bookmark(ui, &info.outline, &doc.bytes, view.current, bm_expand, searching, &bookmark_matches);
                         let mut ctx = OutlineCtx {
                             nav: &mut nav,
                             action: &mut bm_action,

@@ -1,6 +1,6 @@
 //! pdfcraft-ui-egui — the first PdfCraft shell (L7).
 //!
-//! Layout grammar follows plan/acrobat/02-ui-ux.md §1: tab strip, mode bar, left tool panel,
+//! Layout grammar follows plan/acrobat/02-ui-ux.md §1: mode bar, tab strip, left tool panel,
 //! floating quick-action bar, document area, right panel + right rail with page navigation.
 //! Everything here is presentation: documents, rendering and the tool catalogue live in
 //! `pdfcraft-engine`.
@@ -391,8 +391,8 @@ pub struct PdfCraftApp {
     pub toast_dropped: u64,
     /// Whether the macOS title bar is drawn by us (traffic lights over our tab strip).
     pub integrated_titlebar: bool,
-    /// Set when the desktop leaves the window frame to the app (GNOME on Wayland): the tab strip
-    /// carries these window buttons and the window's edges resize it.
+    /// Set when the desktop leaves the window frame to the app (GNOME on Wayland): the top row
+    /// (`chrome::top_rows`) carries these window buttons and the window's edges resize it.
     pub window_controls: Option<window_controls::Layout>,
     /// Preferences ▸ Use system title bar: where `window_controls` is set, give the window back
     /// winit's frame instead of drawing the header bar (#1001).

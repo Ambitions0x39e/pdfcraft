@@ -1535,7 +1535,7 @@ fn combine_files_opens_in_its_own_tab() {
     assert_eq!(h.state().active, Some(0));
     assert!(!h.state().combine_showing() && h.state().combine_tab.open);
     // The tab, in the tab strip (All tools lists Combine files too).
-    h.get_all_by_label("Combine files").find(|n| n.rect().top() < 40.0).unwrap().click();
+    h.get_all_by_label("Combine files").find(|n| n.accesskit_node().role() == Role::Tab).unwrap().click();
     h.run_steps(3);
     assert!(h.state().combine_showing());
     // Home hides it too.

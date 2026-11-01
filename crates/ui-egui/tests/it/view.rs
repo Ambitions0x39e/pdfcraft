@@ -1298,6 +1298,29 @@ fn the_bookmarks_panel_marks_the_bookmark_holding_the_current_page() {
     }
 }
 
+/// The mark is worked out once per page and document version, not every frame, so an edit to
+/// the outline on the same page must still move it: a new bookmark at the current page is the
+/// last one holding it, and the mark goes there.
+#[test]
+fn a_new_bookmark_on_the_current_page_takes_the_mark() {
+    use egui_kittest::kittest::NodeT;
+    let mut h = bookmarks_harness("nested.pdf", NESTED);
+    let marked = |h: &Harness<'static, PdfCraftApp>| {
+        ["Part", "Chapter", "Appendix", "Untitled"]
+            .into_iter()
+            .filter(|title| h.query_by_label(title).is_some_and(|n| n.accesskit_node().toggled() == Some(egui::accesskit::Toggled::True)))
+            .collect::<Vec<_>>()
+    };
+    h.state_mut().set_option("page", "2").unwrap();
+    h.run_steps(4);
+    assert_eq!(marked(&h), ["Part"], "page 2 is in Part");
+    assert!(h.state_mut().execute("bookmark.add"));
+    h.state_mut().bookmark_rename = None;
+    h.run_steps(4);
+    assert_eq!(h.state().views[0].current, 1, "the page did not change");
+    assert_eq!(marked(&h), ["Untitled"], "the new bookmark at page 2 holds it now");
+}
+
 #[test]
 fn link_destinations_scroll_to_their_position() {
     use pdfcraft_ui_egui::canvas::Fit;
