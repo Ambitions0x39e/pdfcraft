@@ -1,0 +1,56 @@
+name: Builds (Windows x64, macOS arm64)
+
+# Fork-only: builds the unsigned Windows x64 MSI + portable zip and the ad-hoc-signed macOS arm64
+# DMG by hand (Actions ▸ Builds ▸ Run workflow), and keeps them as run artifacts.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  msi:
+    runs-on: windows-latest
+    timeout-minutes: 120
+    env:
+      CRAFT_FONTS_DIR: ${{ github.workspace }}\craft-fonts
+    steps:
+      - uses: actions/checkout@v4
+      - name: craft-fonts (same ref as release.yml)
+        run: |
+          git clone https://github.com/storytold/craft-fonts craft-fonts
+          git -C craft-fonts checkout b076417b5880bd4154bd22f00695b1d28c6bea83
+      - name: Rust
+        run: rustup update stable --no-self-update && rustup default stable
+      - uses: Swatinem/rust-cache@v2
+      - name: WiX
+        run: dotnet tool install --global wix --version 5.0.2
+      - name: Package
+        shell: pwsh
+        run: ./packaging/windows/package.ps1 -Arch x64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pdfcraft-windows-x64
+          path: dist/release/*
+
+  dmg:
+    runs-on: macos-latest
+    timeout-minutes: 120
+    env:
+      CRAFT_FONTS_DIR: ${{ github.workspace }}/craft-fonts
+    steps:
+      - uses: actions/checkout@v4
+      - name: craft-fonts (same ref as release.yml)
+        run: |
+          git clone https://github.com/storytold/craft-fonts craft-fonts
+          git -C craft-fonts checkout b076417b5880bd4154bd22f00695b1d28c6bea83
+      - name: Rust
+        run: rustup update stable --no-self-update && rustup default stable && rustup target add aarch64-apple-darwin
+      - uses: Swatinem/rust-cache@v2
+      - name: Package
+        run: ./packaging/macos/package.sh --arch aarch64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pdfcraft-macos-arm64
+          path: dist/release/*
